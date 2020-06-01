@@ -94,32 +94,6 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	return props;
 }
 
-static uint32_t vncsrc_get_width(void *data)
-{
-	struct vnc_source *src = data;
-
-	return 0; // TODO: implement me
-}
-
-static uint32_t vncsrc_get_height(void *data)
-{
-	struct vnc_source *src = data;
-
-	return 0; // TODO: implement me
-}
-
-static void vncsrc_render(void *data, gs_effect_t *effect)
-{
-	UNUSED_PARAMETER(effect);
-	struct vnc_source *src = data;
-
-}
-
-static void vncsrc_tick(void *data, float seconds)
-{
-	struct vnc_source *src = data;
-}
-
 static struct obs_source_info vncsrc_src_info = {
 	.id = "obs_vnc_source",
 	.type = OBS_SOURCE_TYPE_INPUT,

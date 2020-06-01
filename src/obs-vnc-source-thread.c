@@ -7,7 +7,7 @@
 #include "plugin-macros.generated.h"
 #include "obs-vnc-source.h"
 
-#define debug(fmt, ...) 0
+#define debug(fmt, ...) (void)0
 // #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
 static char *vnc_passwd(rfbClient* client)

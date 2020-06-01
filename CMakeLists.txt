@@ -164,9 +164,14 @@ if(WIN32)
 endif()
 # --- End of section ---
 
+if(UNIX)
+	# Because my primary development target is Linux.
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+endif()
+
 # --- Linux-specific build settings and tasks ---
 if(UNIX AND NOT APPLE)
-    include(GNUInstallDirs)
+	include(GNUInstallDirs)
 
 	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
 	target_link_libraries(${CMAKE_PROJECT_NAME} obs-frontend-api)
