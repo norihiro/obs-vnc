@@ -21,8 +21,12 @@ include(external/FindLibObs.cmake)
 endif()
 
 find_package(LibObs REQUIRED)
-find_package(PkgConfig)
-pkg_check_modules(LIBVNCCLIENT REQUIRED libvncclient)
+
+# Linux; use pkg-config to find libvncclient
+if(UNIX AND NOT APPLE)
+	find_package(PkgConfig)
+	pkg_check_modules(LIBVNCCLIENT REQUIRED libvncclient)
+endif()
 
 configure_file(
     src/plugin-macros.h.in

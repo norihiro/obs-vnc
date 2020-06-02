@@ -10,6 +10,7 @@ sudo apt-get install -y \
 	build-essential \
 	checkinstall \
 	cmake \
+	libvncserver-dev \
 	obs-studio \
 	qtbase5-dev
 

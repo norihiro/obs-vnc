@@ -1,9 +1,13 @@
+#include <rfb/rfbclient.h>
+#include <time.h>
+#include <string.h>
 #include <obs-module.h>
 #include <util/platform.h>
 #include <util/threading.h>
+#ifndef _WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <rfb/rfbclient.h>
+#endif // ! _WIN32
 #include "plugin-macros.generated.h"
 #include "obs-vnc-source.h"
 
@@ -102,7 +106,9 @@ static void *thread_main(void *data)
 {
 	struct vnc_source *src = data;
 
+#ifndef _WIN32
 	setpriority(PRIO_PROCESS, 0, 19);
+#endif // ! _WIN32
 	os_set_thread_name("vncsrc");
 
 	int n_wait = 0;

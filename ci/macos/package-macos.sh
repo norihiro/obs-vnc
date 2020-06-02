@@ -36,6 +36,13 @@ install_name_tool \
 # Check if replacement worked
 echo "=> Dependencies for $PLUGIN_NAME"
 otool -L ./build/$PLUGIN_NAME.so
+echo "=> Search paths written in $PLUGIN_NAME"
+otool -l ./build/$PLUGIN_NAME.so
+
+cp -H $(find ../libvncserver/ -name libvncclient.1.dylib) ./
+echo "=> Dependencies for libvncclient.1.dylib"
+otool -L ./libvncclient.1.dylib
+otool -l ./libvncclient.1.dylib
 
 if [[ "$RELEASE_MODE" == "True" ]]; then
 	echo "=> Signing plugin binary: $PLUGIN_NAME.so"
