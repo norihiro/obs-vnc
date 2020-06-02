@@ -143,22 +143,10 @@ jobs:
     - script: ./ci/macos/build-macos.sh
       displayName: 'Build Plugin'
 
-    - task: InstallAppleCertificate@1
-      displayName: 'Install release signing certificates'
-      condition: eq(variables['isReleaseMode'], true)
-      inputs:
-        certSecureFile: 'Certificates.p12'
-        certPwd: $(secrets.macOS.certificatesImportPassword)
-
     - script: ./ci/macos/package-macos.sh
       displayName: 'Package Plugin'
       env:
-        RELEASE_MODE: $(isReleaseMode)
-        CODE_SIGNING_IDENTITY: $(secrets.macOS.codeSigningIdentity)
-        INSTALLER_SIGNING_IDENTITY: $(secrets.macOS.installerSigningIdentity)
-        AC_USERNAME: $(secrets.macOS.notarization.username)
-        AC_PASSWORD: $(secrets.macOS.notarization.password)
-        AC_PROVIDER_SHORTNAME: $(secrets.macOS.notarization.providerShortName)
+        RELEASE_MODE: False
 
     - task: PublishBuildArtifacts@1
       inputs:
