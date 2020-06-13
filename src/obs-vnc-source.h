@@ -9,6 +9,8 @@ struct vncsrc_conig
 	int host_port;
 	// TODO: char *user_name;
 	char *plain_passwd;
+
+	int skip_update_l, skip_update_r, skip_update_t, skip_update_b;
 };
 
 struct vnc_source

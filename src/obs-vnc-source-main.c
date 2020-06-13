@@ -1,4 +1,5 @@
 #include <obs-module.h>
+#include <obs.h>
 #include <util/platform.h>
 #include <util/threading.h>
 #include "plugin-macros.generated.h"
@@ -72,6 +73,11 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		src->need_reconnect = true;
 	}
 
+	src->config.skip_update_l = obs_data_get_int(settings, "skip_update_l");
+	src->config.skip_update_r = obs_data_get_int(settings, "skip_update_r");
+	src->config.skip_update_t = obs_data_get_int(settings, "skip_update_t");
+	src->config.skip_update_b = obs_data_get_int(settings, "skip_update_b");
+
 	pthread_mutex_unlock(&src->config_mutex);
 }
 
@@ -90,6 +96,11 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_text(props, "host_name", obs_module_text("Host name"), OBS_TEXT_DEFAULT);
 	obs_properties_add_int(props, "host_port", obs_module_text("Host port"), 1, 32767, 1);
 	obs_properties_add_text(props, "plain_passwd", obs_module_text("Password"), OBS_TEXT_PASSWORD);
+
+	obs_properties_add_int(props, "skip_update_l", obs_module_text("Skip update (left)"), 0, 32767, 1);
+	obs_properties_add_int(props, "skip_update_r", obs_module_text("Skip update (right)"), 0, 32767, 1);
+	obs_properties_add_int(props, "skip_update_t", obs_module_text("Skip update (top)"), 0, 32767, 1);
+	obs_properties_add_int(props, "skip_update_b", obs_module_text("Skip update (bottom)"), 0, 32767, 1);
 
 	return props;
 }

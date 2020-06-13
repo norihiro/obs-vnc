@@ -53,7 +53,16 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 	UNUSED_PARAMETER(h);
 
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
-	if (!src || !src->source)
+	if (!src)
+		return;
+
+	if (x+w < src->config.skip_update_l)
+		return;
+	if (x > src->frame.width - src->config.skip_update_r)
+		return;
+	if (y+h < src->config.skip_update_t)
+		return;
+	if (y > src->frame.height - src->config.skip_update_b)
 		return;
 
 	if (!src->frame.timestamp)
@@ -148,7 +157,7 @@ static void *thread_main(void *data)
 			}
 		}
 
-		if (src->frame.timestamp) {
+		if (src->frame.timestamp && src->source) {
 			debug("calling obs_source_output_video\n");
 			obs_source_output_video(src->source, &src->frame);
 			src->frame.timestamp = 0;
