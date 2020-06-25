@@ -2,7 +2,7 @@ variables:
   macosSignAndNotarize: false
   isReleaseMode: ${{ and(eq(variables['isReleaseMode'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/')) }}
   buildWin32: false
-  buildWin64: false
+  buildWin64: true
 
 trigger:
   branches:
@@ -56,7 +56,7 @@ jobs:
         path: $(OBSPath)
 
     - script: ./ci/windows/install-libvncserver.cmd
-      displayName: 'Prepare libvncserver'
+      displayName: 'Prepare libvncserver 64-bit'
       env:
         LIBVNCPath: $(LIBVNCPath)
 
@@ -65,7 +65,7 @@ jobs:
       condition: eq(variables['buildWin64'], true)
       inputs:
         msbuildArguments: '/m /p:Configuration=$(build_config)'
-        solution: '$(LIBVNCPath)\build\libvncserver.sln'
+        solution: '$(LIBVNCPath)\libvncserver.sln'
 
     - script: ./ci/windows/prepare-obs-windows.cmd
       displayName: 'Checkout & CMake OBS Studio'

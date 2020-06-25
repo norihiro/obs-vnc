@@ -1,3 +1,20 @@
+// A block below is copied from rfbproto.c.
+#ifdef _WIN32
+
+#ifdef __STRICT_ANSI__
+#define _BSD_SOURCE
+#define _POSIX_SOURCE
+#define _XOPEN_SOURCE 600
+#endif
+#ifndef WIN32
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+#include <errno.h>
+
+#define WIN32
+#endif // _WIN32
+
 #include <rfb/rfbclient.h>
 #include <time.h>
 #include <string.h>
@@ -179,10 +196,17 @@ void vncsrc_thread_start(struct vnc_source *src)
 
 void vncsrc_thread_stop(struct vnc_source *src)
 {
+#ifdef _WIN32
+	if (src->running) {
+		src->running = false;
+		pthread_join(src->thread, NULL);
+	}
+#else
 	src->running = false;
 	if (src->thread)
 		pthread_join(src->thread, NULL);
 	src->thread = 0;
+#endif
 
 	BFREE_IF_NONNULL(src->frame.data[0]);
 }
