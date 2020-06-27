@@ -54,10 +54,15 @@ cd ..
 REM go back to source root
 cd ..
 
+:: TODO: CMake cannot find 32-bit OpenSSL
+set WITH_OPENSSL ON
+if %CMakeOptA% == Win32 then set WITH_OPENSSL OFF
+
 REM build_script:
 cmake --version
 cmake ^
 -A %CMakeOptA% ^
+-DWITH_OPENSSL=%WITH_OPENSSL% ^
 -DZLIB_INCLUDE_DIR=.\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib ^
 -DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
 .

@@ -106,9 +106,12 @@ if(WIN32)
 
 	set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} wsock32.lib ws2_32.lib)
 
-	find_package(OpenSSL)
-	if(OPENSSL_FOUND)
-		set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ${OPENSSL_LIBRARIES})
+	# TODO: Since CMake cannot find 32-bit OpenSSL, skip to link OpenSSL for 32-bit.
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		find_package(OpenSSL)
+		if(OPENSSL_FOUND)
+			set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ${OPENSSL_LIBRARIES})
+		endif()
 	endif()
 
 	target_link_libraries(${CMAKE_PROJECT_NAME}
