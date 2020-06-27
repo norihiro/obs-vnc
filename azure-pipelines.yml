@@ -1,7 +1,7 @@
 variables:
   macosSignAndNotarize: false
   isReleaseMode: ${{ and(eq(variables['isReleaseMode'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/')) }}
-  buildWin32: false
+  buildWin32: true
   buildWin64: true
 
 trigger:
@@ -25,7 +25,7 @@ jobs:
     QTDIR32: '$(QtBaseDir)\5.10.1\msvc2017'
     QTDIR64: '$(QtBaseDir)\5.10.1\msvc2017_64'
     OBSPath: 'D:\obs-studio'
-    LIBVNCPath: 'D:\libvncserver'
+    LIBVNCPathBase: 'D:\libvncserver'
   condition: or(eq(variables['buildWin32'], true), eq(variables['buildWin64'], true))
   steps:
     - checkout: self
@@ -58,14 +58,28 @@ jobs:
     - script: ./ci/windows/install-libvncserver.cmd
       displayName: 'Prepare libvncserver 64-bit'
       env:
-        LIBVNCPath: $(LIBVNCPath)
+        LIBVNCPath: $(LIBVNCPathBase)-x64
+        CMakeOptA: x64
+
+    - script: ./ci/windows/install-libvncserver.cmd
+      displayName: 'Prepare libvncserver 32-bit'
+      env:
+        LIBVNCPath: $(LIBVNCPathBase)-Win32
+        CMakeOptA: Win32
 
     - task: MSBuild@1
       displayName: 'Build libvncserver 64-bit'
       condition: eq(variables['buildWin64'], true)
       inputs:
         msbuildArguments: '/m /p:Configuration=$(build_config)'
-        solution: '$(LIBVNCPath)\libvncserver.sln'
+        solution: '$(LIBVNCPathBase)-x64\libvncserver.sln'
+
+    - task: MSBuild@1
+      displayName: 'Build libvncserver 32-bit'
+      condition: eq(variables['buildWin32'], true)
+      inputs:
+        msbuildArguments: '/m /p:Configuration=$(build_config)'
+        solution: '$(LIBVNCPathBase)-Win32\libvncserver.sln'
 
     - script: ./ci/windows/prepare-obs-windows.cmd
       displayName: 'Checkout & CMake OBS Studio'
@@ -98,7 +112,8 @@ jobs:
         QTDIR32: $(QTDIR32)
         QTDIR64: $(QTDIR64)
         OBSPath: $(OBSPath)
-        LIBVNCPath: $(LIBVNCPath)
+        LIBVNCPath64: $(LIBVNCPathBase)-x64
+        LIBVNCPath32: $(LIBVNCPathBase)-Win32
         buildWin32: $(buildWin32)
         buildWin64: $(buildWin64)
 

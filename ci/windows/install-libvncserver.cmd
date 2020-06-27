@@ -17,7 +17,7 @@ curl -fsSL -o zlib.tar.gz https://github.com/madler/zlib/archive/v1.2.8.tar.gz
 7z x zlib.tar.gz -so | 7z x -si -ttar > nul
 move zlib-1.2.8 zlib
 cd zlib
-cmake .
+cmake -A %CMakeOptA% .
 cmake --build . --config %build_config%
 cd ..
 
@@ -26,7 +26,7 @@ curl -fsSL -o libpng.tar.gz http://prdownloads.sourceforge.net/libpng/libpng-1.6
 7z x libpng.tar.gz -so | 7z x -si -ttar > nul
 move libpng-1.6.28 libpng
 cd libpng
-cmake . -DZLIB_INCLUDE_DIR=%LIBVNCPath%\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib
+cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%LIBVNCPath%\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib
 cmake --build . --config %build_config%
 cd ..
 
@@ -57,6 +57,7 @@ cd ..
 REM build_script:
 cmake --version
 cmake ^
+-A %CMakeOptA% ^
 -DZLIB_INCLUDE_DIR=.\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib ^
 -DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
 .
