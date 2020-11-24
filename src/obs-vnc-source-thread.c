@@ -99,6 +99,7 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 	client->GotFrameBufferUpdate = vnc_update;
 	client->GetPassword = vnc_passwd;
 	client->programName = "obs-vnc-src";
+	client->canHandleNewFBSize = 1;
 
 	pthread_mutex_lock(&src->config_mutex);
 	client->serverHost = strdup(src->config.host_name);
