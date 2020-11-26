@@ -20,6 +20,18 @@ dir nasm-2.15.05
 move nasm-2.15.05 nasm
 path=%Path%;%LIBVNCPath%\deps\nasm
 
+echo Downloading lzo...
+curl -fsSL -o lzo.tar.gz http://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
+7z x lzo.tar.gz -so | 7z x -si -ttar > nul
+move lzo-2.10 lzo
+echo Building lzo...
+cd lzo
+mkdir build
+cd build
+cmake -A %CMakeOptA% ..
+cmake --build . --config %build_config%
+cd %LIBVNCPath%\deps
+
 echo Downloading zlib...
 curl -fsSL -o zlib.tar.gz https://github.com/madler/zlib/archive/v1.2.8.tar.gz
 7z x zlib.tar.gz -so | 7z x -si -ttar > nul
@@ -84,6 +96,7 @@ cmake ^
 -A %CMakeOptA% ^
 -DWITH_OPENSSL=%WITH_OPENSSL% ^
 -DZLIB_INCLUDE_DIR=.\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib ^
+-DLZO_INCLUDE_DIR=.\deps\lzo\include -DLZO_LIBRARIES=%LIBVNCPath%\deps\lzo\build\%build_config%\lzo2.lib ^
 -DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
 -DJPEG_INCLUDE_DIR=%LIBVNCPath%/deps/libjpeg -DJPEG_LIBRARY=./deps/libjpeg/%build_config%/turbojpeg-static ^
 .
