@@ -12,7 +12,15 @@ REM below are copied from libvncserver/.appveyor.yml
 if not exist deps mkdir deps
 cd deps
 
-REM zlib
+echo Downloading nasm binary...
+if %CMakeOptA% == Win32 curl -fsSL -o nasm.zip https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win32/nasm-2.15.05-win32.zip
+if %CMakeOptA% == x64   curl -fsSL -o nasm.zip https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-win64.zip
+7z x nasm.zip
+dir nasm-2.15.05
+move nasm-2.15.05 nasm
+path=%Path%;%LIBVNCPath%\deps\nasm
+
+echo Downloading zlib...
 curl -fsSL -o zlib.tar.gz https://github.com/madler/zlib/archive/v1.2.8.tar.gz
 7z x zlib.tar.gz -so | 7z x -si -ttar > nul
 move zlib-1.2.8 zlib
@@ -21,10 +29,22 @@ cmake -A %CMakeOptA% .
 cmake --build . --config %build_config%
 cd ..
 
-REM libPNG
+echo Downloading libjpeg...
+rem curl -fsSL -o libjpeg.tar.gz https://github.com/libjpeg-turbo/libjpeg-turbo/archive/2.0.4.tar.gz
+curl -fsSL -o libjpeg.tar.gz https://github.com/norihiro/obs-vnc/releases/download/0.1.0/libjpeg-2.0.4-norihiro.tar.gz
+7z x libjpeg.tar.gz -so | 7z x -si -ttar > nul
+rem move libjpeg-turbo-2.0.4 libjpeg
+echo Building libjpeg...
+cd libjpeg
+cmake -A %CMakeOptA% .
+cmake --build . --config %build_config%
+cd %LIBVNCPath%\deps
+
+echo Downloading libpng...
 curl -fsSL -o libpng.tar.gz http://prdownloads.sourceforge.net/libpng/libpng-1.6.28.tar.gz?download
 7z x libpng.tar.gz -so | 7z x -si -ttar > nul
 move libpng-1.6.28 libpng
+echo Building libpng...
 cd libpng
 cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%LIBVNCPath%\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib
 cmake --build . --config %build_config%
@@ -56,20 +76,18 @@ cd ..
 
 :: TODO: CMake cannot find 32-bit OpenSSL
 set WITH_OPENSSL ON
-if %CMakeOptA% == Win32 then set WITH_OPENSSL OFF
+if %CMakeOptA% == Win32 set WITH_OPENSSL OFF
 
-REM build_script:
+echo Preparing libvncserver...
 cmake --version
 cmake ^
 -A %CMakeOptA% ^
 -DWITH_OPENSSL=%WITH_OPENSSL% ^
 -DZLIB_INCLUDE_DIR=.\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib ^
 -DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
+-DJPEG_INCLUDE_DIR=%LIBVNCPath%/deps/libjpeg -DJPEG_LIBRARY=./deps/libjpeg/%build_config%/turbojpeg-static ^
 .
 rem TODO: build in another task so that I dont run this command: cmake --build .
-dir
-dir deps
-dir deps\zlib
-dir deps\zlib\%build_config%
+dir /S
 
 REM TODO: add SASL

@@ -14,6 +14,7 @@ cmake -G "Visual Studio 16 2019" ^
 -DPTHREAD_LIBRARIES="%OBSPath%\build32\deps\w32-pthreads\%build_config%\w32-pthreads.lib" ^
 -DZLIB_LIB="%LIBVNCPath32%\deps\zlib\%build_config%\zlibstatic.lib" ^
 -DLIBPNG_LIB="%LIBVNCPath32%\deps\libpng\%build_config%\libpng16_static.lib" ^
+-DLIBJPEG_LIB="%LIBVNCPath32%\deps\libjpeg\%build_config%\turbojpeg-static.lib" ^
 ..
 cd ..
 :skippedWin32
@@ -33,6 +34,7 @@ cmake -G "Visual Studio 16 2019" ^
 -DPTHREAD_LIBRARIES="%OBSPath%\build64\deps\w32-pthreads\%build_config%\w32-pthreads.lib" ^
 -DZLIB_LIB="%LIBVNCPath64%\deps\zlib\%build_config%\zlibstatic.lib" ^
 -DLIBPNG_LIB="%LIBVNCPath64%\deps\libpng\%build_config%\libpng16_static.lib" ^
+-DLIBJPEG_LIB="%LIBVNCPath64%\deps\libjpeg\%build_config%\turbojpeg-static.lib" ^
 ..
 
 REM Import the generated includes to get the plugin's name
