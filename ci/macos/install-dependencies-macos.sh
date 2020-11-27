@@ -25,6 +25,8 @@ brew update >/dev/null
 echo "[=> Checking installed Homebrew formulas.."
 BREW_PACKAGES=$(brew list --formula)
 BREW_DEPENDENCIES="jack speexdsp ccache swig mbedtls"
+# additional dependencies for libvncserver
+BREW_DEPENDENCIES="$BREW_DEPENDENCIES lzo"
 
 for DEPENDENCY in ${BREW_DEPENDENCIES}; do
     if echo "${BREW_PACKAGES}" | grep -q "^${DEPENDENCY}\$"; then
