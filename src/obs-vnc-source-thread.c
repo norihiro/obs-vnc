@@ -86,6 +86,24 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 		src->frame.timestamp = os_gettime_ns();
 }
 
+static void set_encodings_to_client(rfbClient *client, const struct vncsrc_conig *config)
+{
+	switch (config->encodings) {
+		case ve_tight: client->appData.encodingsString = "tight copyrect"; break;
+		case ve_zrle: client->appData.encodingsString = "zrle copyrect"; break;
+		case ve_ultra: client->appData.encodingsString = "ultra copyrect"; break;
+		case ve_hextile: client->appData.encodingsString = "hextile copyrect"; break;
+		case ve_zlib: client->appData.encodingsString = "zlib copyrect"; break;
+		case ve_corre: client->appData.encodingsString = "corre copyrect"; break;
+		case ve_rre: client->appData.encodingsString = "rre copyrect"; break;
+		case ve_raw: client->appData.encodingsString = "raw copyrect"; break;
+		default: client->appData.encodingsString = "tight zrle ultra copyrect hextile zlib corre rre raw";
+	}
+	client->appData.compressLevel = config->compress;
+	client->appData.enableJPEG = config->jpeg;
+	client->appData.qualityLevel = config->quality;
+}
+
 static inline rfbClient *rfbc_start(struct vnc_source *src)
 {
 	rfbClient *client = rfbGetClient(8, 3, 4);
@@ -102,8 +120,12 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 	client->canHandleNewFBSize = 1;
 
 	pthread_mutex_lock(&src->config_mutex);
+
 	client->serverHost = strdup(src->config.host_name);
 	client->serverPort = src->config.host_port;
+	set_encodings_to_client(client, &src->config);
+	client->QoS_DSCP = src->config.qosdscp;
+
 	pthread_mutex_unlock(&src->config_mutex);
 
 	blog(LOG_INFO, "rfbInitClient with serverHost=%s serverPort=%d\n", client->serverHost, client->serverPort);
@@ -120,10 +142,13 @@ static inline bool rfbc_poll(struct vnc_source *src, rfbClient *client)
 {
 	int ret = WaitForMessage(client, 33*1000);
 	if (ret>0) {
-		if (!HandleRFBServerMessage(client))
+		if (!HandleRFBServerMessage(client)) {
+			blog(LOG_INFO, "HandleRFBServerMessage returns 0");
 			return 1;
+		}
 	}
 	else if (ret<0) {
+		blog(LOG_INFO, "WaitForMessage returns %d", ret);
 		return 1;
 	}
 	return 0; // success
@@ -169,6 +194,18 @@ static void *thread_main(void *data)
 			n_wait = 0;
 		}
 		else {
+			if (src->encoding_updated) {
+				blog(LOG_INFO, "updating encoding settings");
+				pthread_mutex_lock(&src->config_mutex);
+				set_encodings_to_client(client, &src->config);
+				src->encoding_updated = false;
+				pthread_mutex_unlock(&src->config_mutex);
+				SetFormatAndEncodings(client);
+			}
+			if (src->dscp_updated) {
+				SetDSCP(client->sock, client->QoS_DSCP = src->config.qosdscp);
+				src->dscp_updated = false;
+			}
 			if (rfbc_poll(src, client)) {
 				rfbClientCleanup(client);
 				client = NULL;
