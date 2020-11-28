@@ -25,6 +25,5 @@ It is recommended to set the same values to the Crop settings in Scene Item Tran
 ## Furture plan
 
 * support MacOS,
-* limit rectangle to be updated,
-* configurations for hide cursor, compression, user-name, etc.,
+* configurations for hide cursor, color-depth, user-name, etc.,
 * and other items if requested.
