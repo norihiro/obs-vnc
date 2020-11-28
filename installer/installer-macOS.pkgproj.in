@@ -46,13 +46,62 @@
 																		<key>UID</key>
 																		<integer>0</integer>
 																	</dict>
+																</array>
+																<key>GID</key>
+																<integer>80</integer>
+																<key>PATH</key>
+																<string>bin</string>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+																<key>PERMISSIONS</key>
+																<integer>493</integer>
+																<key>TYPE</key>
+																<integer>2</integer>
+																<key>UID</key>
+																<integer>0</integer>
+															</dict>
+															<dict>
+																<key>CHILDREN</key>
+																<array>
 																	<dict>
 																		<key>CHILDREN</key>
 																		<array/>
 																		<key>GID</key>
 																		<integer>80</integer>
 																		<key>PATH</key>
-																		<string>../libvncclient.1.dylib</string>
+																		<string>../lib/liblzo2.2.dylib</string>
+																		<key>PATH_TYPE</key>
+																		<integer>1</integer>
+																		<key>PERMISSIONS</key>
+																		<integer>493</integer>
+																		<key>TYPE</key>
+																		<integer>3</integer>
+																		<key>UID</key>
+																		<integer>0</integer>
+																	</dict>
+																	<dict>
+																		<key>CHILDREN</key>
+																		<array/>
+																		<key>GID</key>
+																		<integer>80</integer>
+																		<key>PATH</key>
+																		<string>../lib/libjpeg.9.dylib</string>
+																		<key>PATH_TYPE</key>
+																		<integer>1</integer>
+																		<key>PERMISSIONS</key>
+																		<integer>493</integer>
+																		<key>TYPE</key>
+																		<integer>3</integer>
+																		<key>UID</key>
+																		<integer>0</integer>
+																	</dict>
+																	<dict>
+																		<key>CHILDREN</key>
+																		<array/>
+																		<key>GID</key>
+																		<integer>80</integer>
+																		<key>PATH</key>
+																		<string>../lib/libpng16.16.dylib</string>
 																		<key>PATH_TYPE</key>
 																		<integer>1</integer>
 																		<key>PERMISSIONS</key>
@@ -66,7 +115,7 @@
 																<key>GID</key>
 																<integer>80</integer>
 																<key>PATH</key>
-																<string>bin</string>
+																<string>lib</string>
 																<key>PATH_TYPE</key>
 																<integer>0</integer>
 																<key>PERMISSIONS</key>

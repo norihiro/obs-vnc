@@ -28,7 +28,7 @@ cmake .. \
 	-DOBS_FRONTEND_LIB="$(pwd)/../../obs-studio/build/UI/obs-frontend-api/libobs-frontend-api.dylib" \
 	-DLIBVNCCLIENT_INCLUDE_DIRS="$(pwd)/../../libvncserver" \
 	-DLIBVNCCLIENT_LIB_DIRS="$(pwd)/../../libvncserver/build" \
-	-DLIBVNCCLIENT_LIBRARIES="$(pwd)/../../libvncserver/build/libvncclient.dylib" \
+	-DLIBVNCCLIENT_LIBRARIES="$(pwd)/../../libvncserver/build/libvncclient.a;/usr/local/lib/liblzo2.dylib;/usr/local/lib/libjpeg.dylib;/usr/local/lib/libpng.dylib;libsasl2.tbd;libz.tbd" \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	-DCMAKE_INSTALL_PREFIX=/usr \
 && make -j4 VERBOSE=1

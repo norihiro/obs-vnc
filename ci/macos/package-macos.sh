@@ -24,6 +24,18 @@ FILENAME_UNSIGNED="$PLUGIN_NAME-$PKG_VERSION-Unsigned.pkg"
 FILENAME="$PLUGIN_NAME-$PKG_VERSION.pkg"
 
 echo "=> Modifying $PLUGIN_NAME.so"
+mkdir lib
+for dylib in \
+	/usr/local/opt/lzo/lib/liblzo2.2.dylib \
+	/usr/local/opt/jpeg/lib/libjpeg.9.dylib \
+	/usr/local/opt/libpng/lib/libpng16.16.dylib
+do
+	cp $dylib lib/
+	b=$(basename $dylib)
+	install_name_tool -id "@rpath/$b" lib/$b
+	install_name_tool -change "$dylib" "@rpath/../lib/$b" ./build/$PLUGIN_NAME.so
+done
+
 install_name_tool \
 	-change /usr/local/opt/qt/lib/QtWidgets.framework/Versions/5/QtWidgets \
 		@executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets \
@@ -34,15 +46,12 @@ install_name_tool \
 	./build/$PLUGIN_NAME.so
 
 # Check if replacement worked
-echo "=> Dependencies for $PLUGIN_NAME"
-otool -L ./build/$PLUGIN_NAME.so
-echo "=> Search paths written in $PLUGIN_NAME"
-otool -l ./build/$PLUGIN_NAME.so
-
-cp -H $(find ../libvncserver/ -name libvncclient.1.dylib) ./
-echo "=> Dependencies for libvncclient.1.dylib"
-otool -L ./libvncclient.1.dylib
-otool -l ./libvncclient.1.dylib
+for dylib in ./build/$PLUGIN_NAME.so lib/*.dylib ; do
+	echo "=> Dependencies for $(basename $dylib)"
+	otool -L $dylib
+	echo "=> Search paths written in $(basename $dylib)"
+	otool -l $dylib
+done
 
 if [[ "$RELEASE_MODE" == "True" ]]; then
 	echo "=> Signing plugin binary: $PLUGIN_NAME.so"
