@@ -67,20 +67,6 @@ jobs:
         LIBVNCPath: $(LIBVNCPathBase)-Win32
         CMakeOptA: Win32
 
-    - task: MSBuild@1
-      displayName: 'Build libvncserver 64-bit'
-      condition: eq(variables['buildWin64'], true)
-      inputs:
-        msbuildArguments: '/m /p:Configuration=$(build_config)'
-        solution: '$(LIBVNCPathBase)-x64\libvncserver.sln'
-
-    - task: MSBuild@1
-      displayName: 'Build libvncserver 32-bit'
-      condition: eq(variables['buildWin32'], true)
-      inputs:
-        msbuildArguments: '/m /p:Configuration=$(build_config)'
-        solution: '$(LIBVNCPathBase)-Win32\libvncserver.sln'
-
     - script: ./ci/windows/prepare-obs-windows.cmd
       displayName: 'Checkout & CMake OBS Studio'
       env:
