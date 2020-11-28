@@ -32,6 +32,11 @@ cmake .. \
 	-DCMAKE_PREFIX_PATH=/usr/local/opt/qt/lib/cmake \
 	-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
 	-DWITH_OPENSSL=OFF -DWITH_GNUTLS=OFF -DWITH_GCRYPT=OFF \
+	-DBUILD_SHARED_LIBS=OFF \
+	-DWITH_SDL=OFF \
+	-DWITH_GTK=OFF \
+	-DWITH_SYSTEMD=OFF \
+	-DWITH_FFMPEG=OFF \
 && make -j4
 
 # for debugging
@@ -39,3 +44,4 @@ set -x
 pwd
 find .
 cat libvncserver.pc
+cat libvncclient.pc
