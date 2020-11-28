@@ -104,8 +104,6 @@ if(WIN32)
 		"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/UI"
 	)
 
-	set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} wsock32.lib ws2_32.lib)
-
 	# TODO: Since CMake cannot find 32-bit OpenSSL, skip to link OpenSSL for 32-bit.
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		find_package(OpenSSL)
@@ -117,12 +115,6 @@ if(WIN32)
 	target_link_libraries(${CMAKE_PROJECT_NAME}
 		"${OBS_FRONTEND_LIB}"
 		${LIBVNCCLIENT_LIBRARIES}
-		${PTHREAD_LIBRARIES}
-		${ZLIB_LIB}
-		${LZO_LIB}
-		${LIBPNG_LIB}
-		${LIBJPEG_LIB}
-		${ADDITIONAL_LIBS}
     )
 
 	# --- Release package helper ---
