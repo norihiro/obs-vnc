@@ -13,9 +13,18 @@ If you are to view Windows desktop by this plugin, these two VNC server applicat
 ### MacOS
 MacOS has builtin VNC server as Screen Sharing service.
 
-### Furture plan
+### Multi-display
+The generic VNC protocol does not have an option to select display.
+Most VNC servers send whole desktop.
 
-* support MacOS and Windows,
+As a workaround of multi-display, the plugin provides settings `Skip update (left/right/top/bottom)`.
+Still the plugin receives the picture from the VNC server,
+these settings will discard an update-notification that goes to the graphics engine of OBS-Studio if all the updated region from the VNC-server is in the range of the values provided by these settings.
+It is recommended to set the same values to the Crop settings in Scene Item Transform of your source.
+
+## Furture plan
+
+* support MacOS,
 * limit rectangle to be updated,
 * configurations for hide cursor, compression, user-name, etc.,
 * and other items if requested.
