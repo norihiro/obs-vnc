@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This plugin is a VNC viewer that works as a source in OBS Studio
+This plugin is a VNC viewer that works as a source in OBS Studio.
 
-## Preparation
+## Preparing a VNC Server
 ### Windows
 If you are to view Windows desktop by this plugin, these two VNC server applications are my recommendation.
 - [TightVNC](https://www.tightvnc.com/download.php)
@@ -24,6 +24,5 @@ It is recommended to set the same values to the Crop settings in Scene Item Tran
 
 ## Furture plan
 
-* support MacOS,
 * configurations for hide cursor, color-depth, user-name, etc.,
 * and other items if requested.
