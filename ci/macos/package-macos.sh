@@ -32,8 +32,8 @@ for dylib in \
 do
 	cp $dylib lib/
 	b=$(basename $dylib)
-	install_name_tool -id "@rpath/$b" lib/$b
-	install_name_tool -change "$dylib" "@rpath/../lib/$b" ./build/$PLUGIN_NAME.so
+	install_name_tool -id "@loader_path/$b" lib/$b
+	install_name_tool -change "$dylib" "@loader_path/../lib/$b" ./build/$PLUGIN_NAME.so
 done
 
 install_name_tool \
