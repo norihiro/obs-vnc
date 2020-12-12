@@ -128,7 +128,7 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 
 	pthread_mutex_unlock(&src->config_mutex);
 
-	blog(LOG_INFO, "rfbInitClient with serverHost=%s serverPort=%d\n", client->serverHost, client->serverPort);
+	blog(LOG_INFO, "rfbInitClient with serverHost=%s serverPort=%d", client->serverHost, client->serverPort);
 
 	if (!rfbInitClient(client, NULL, NULL)) {
 		// If failed, client has already been freed.
@@ -187,7 +187,7 @@ static void *thread_main(void *data)
 			if (!client) {
 				cnt_failure += 1;
 				n_wait = cnt_failure > 10 ? 100 : cnt_failure*10;
-				blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds\n", n_wait/10);
+				blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds", n_wait/10);
 				continue;
 			}
 			cnt_failure = 0;
