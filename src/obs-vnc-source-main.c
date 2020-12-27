@@ -100,7 +100,7 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	props = obs_properties_create();
 
 	obs_properties_add_text(props, "host_name", obs_module_text("Host name"), OBS_TEXT_DEFAULT);
-	obs_properties_add_int(props, "host_port", obs_module_text("Host port"), 1, 32767, 1);
+	obs_properties_add_int(props, "host_port", obs_module_text("Host port"), 1, 65535, 1);
 	obs_properties_add_text(props, "plain_passwd", obs_module_text("Password"), OBS_TEXT_PASSWORD);
 
 	prop = obs_properties_add_list(props, "encodings", "Preferred encodings", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
