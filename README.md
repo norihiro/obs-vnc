@@ -11,11 +11,11 @@ If you are to view Windows desktop by this plugin, these two VNC server applicat
 - [UltraVNC](https://www.uvnc.com/downloads/ultravnc.html)
 
 ### MacOS
-MacOS has builtin VNC server as Screen Sharing service.
+MacOS has a builtin VNC server named Screen Sharing service.
 
 ### Multi-display
 The generic VNC protocol does not have an option to select display.
-Most VNC servers send whole desktop.
+Most VNC servers send whole desktop but some VNC servers for Windows have the ability to select a display.
 
 As a workaround of multi-display, the plugin provides settings `Skip update (left/right/top/bottom)`.
 Still the plugin receives the picture from the VNC server,
