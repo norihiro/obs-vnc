@@ -10,6 +10,10 @@ If you are to view Windows desktop by this plugin, these two VNC server applicat
 - [TightVNC](https://www.tightvnc.com/download.php)
 - [UltraVNC](https://www.uvnc.com/downloads/ultravnc.html)
 
+For UltraVNC users who want to send secondary display,
+please check 'Show Secondary Display' in Screen Capture tab, UltraVNC Server Settings.
+The UltraVNC Server Settings in found in your Start menu, not the right-click menu from the task icon.
+
 ### MacOS
 MacOS has a builtin VNC server named Screen Sharing service.
 
