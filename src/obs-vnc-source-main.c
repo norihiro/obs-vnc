@@ -67,6 +67,7 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		src->need_reconnect = true;
 	}
 
+	UPDATE_NOTIFY(src, int, bpp, need_reconnect, obs_data_get_int(settings, "bpp"));
 	UPDATE_NOTIFY(src, int, encodings, encoding_updated, obs_data_get_int(settings, "encodings"));
 	UPDATE_NOTIFY(src, int, compress, encoding_updated, obs_data_get_int(settings, "compress"));
 	UPDATE_NOTIFY(src, bool, jpeg, encoding_updated, obs_data_get_bool(settings, "jpeg"));
@@ -85,6 +86,7 @@ static void vncsrc_get_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "host_port", 5900);
 
+	obs_data_set_default_int(settings, "bpp", 32);
 	obs_data_set_default_int(settings, "encodings", -1);
 	obs_data_set_default_int(settings, "compress", 3);
 	obs_data_set_default_bool(settings, "jpeg", 1);
@@ -102,6 +104,10 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_int(props, "host_port", obs_module_text("Host port"), 1, 65535, 1);
 	obs_properties_add_text(props, "plain_passwd", obs_module_text("Password"), OBS_TEXT_PASSWORD);
 
+	prop = obs_properties_add_list(props, "bpp", "Color level", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(prop, "24-bit", 32);
+	obs_property_list_add_int(prop, "16-bit", 16);
+	obs_property_list_add_int(prop, "8-bit", 8);
 	prop = obs_properties_add_list(props, "encodings", "Preferred encodings", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
 	obs_property_list_add_int(prop, "Auto", -1);
 	obs_property_list_add_int(prop, "Tight", ve_tight);

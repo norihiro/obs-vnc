@@ -21,6 +21,7 @@ struct vncsrc_conig
 	int host_port;
 	// TODO: char *user_name;
 	char *plain_passwd;
+	int bpp; // bits per pixel; 8, 16, [32] only.
 	int encodings;
 	int compress;
 	bool jpeg;
@@ -41,6 +42,7 @@ struct vnc_source
 	volatile bool running;
 
 	struct obs_source_frame frame;
+	void *fb_vnc; // for 8-bit and 16-bit
 
 	// threads
 	pthread_t thread;
