@@ -20,7 +20,6 @@ static void vncsrc_update(void *data, obs_data_t *settings);
 
 static void *vncsrc_create(obs_data_t *settings, obs_source_t *source)
 {
-	UNUSED_PARAMETER(source);
 	struct vnc_source *src = bzalloc(sizeof(struct vnc_source));
 	src->source = source;
 	obs_source_set_async_unbuffered(source, true);

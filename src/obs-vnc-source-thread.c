@@ -64,10 +64,6 @@ static rfbBool vnc_malloc_fb(rfbClient* client)
 static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 {
 	debug("vnc_update x=%d y=%d w=%d h=%d\n", x, y, w, h);
-	UNUSED_PARAMETER(x);
-	UNUSED_PARAMETER(y);
-	UNUSED_PARAMETER(w);
-	UNUSED_PARAMETER(h);
 
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
 	if (!src)
