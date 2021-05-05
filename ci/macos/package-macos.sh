@@ -13,8 +13,6 @@ if [ "${OSTYPE}" != "Darwin" ]; then
 fi
 
 echo "=> Preparing package build"
-export QT_CELLAR_PREFIX="$(/usr/bin/find /usr/local/Cellar/qt -d 1 | sort -t '.' -k 1,1n -k 2,2n -k 3,3n | tail -n 1)"
-
 GIT_HASH=$(git rev-parse --short HEAD)
 GIT_BRANCH_OR_TAG=$(git name-rev --name-only HEAD | awk -F/ '{print $NF}')
 
@@ -60,11 +58,22 @@ else
 	echo "=> Skipped plugin codesigning"
 fi
 
-echo "=> Actual package build"
-packagesbuild ./installer/installer-macOS.generated.pkgproj
+echo "=> ZIP package build"
+ziproot=package-zip/$PLUGIN_NAME
+zipfile=${PLUGIN_NAME}-macos.zip
+mkdir -p $ziproot/bin
+cp ./build/$PLUGIN_NAME.so $ziproot/bin/
+cp -a data $ziproot/
+mkdir -p ./release
+chmod +x lib/*.dylib
+mv lib $ziproot/
+(cd package-zip && zip -r ../release/$zipfile $PLUGIN_NAME)
 
-echo "=> Renaming $PLUGIN_NAME.pkg to $FILENAME"
-mv ./release/$PLUGIN_NAME.pkg ./release/$FILENAME_UNSIGNED
+# echo "=> Actual package build"
+# packagesbuild ./installer/installer-macOS.generated.pkgproj
+
+# echo "=> Renaming $PLUGIN_NAME.pkg to $FILENAME"
+# mv ./release/$PLUGIN_NAME.pkg ./release/$FILENAME_UNSIGNED
 
 if [[ "$RELEASE_MODE" == "True" ]]; then
 	echo "=> Signing installer: $FILENAME"
