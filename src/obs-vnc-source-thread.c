@@ -55,23 +55,54 @@ static rfbBool vnc_malloc_fb(rfbClient* client)
 
 	src->frame.linesize[0] = client->width * 4;
 	BFREE_IF_NONNULL(src->frame.data[0]);
+	BFREE_IF_NONNULL(src->fb_vnc);
 	src->frame.data[0] = bzalloc(src->frame.linesize[0] * client->height);
-	client->frameBuffer = src->frame.data[0];
+	switch (src->config.bpp) {
+		case 8:
+			client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height);
+			break;
+		case 16:
+			client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height * 2);
+			break;
+		default:
+			client->frameBuffer = src->frame.data[0];
+	}
 
 	return TRUE;
+}
+
+static inline void copy_8bit(uint8_t *dst, int dst_ls, const uint8_t *src, int src_ls, int x0, int y0, int x1, int y1)
+{
+	for (int y=y0; y<y1; y++) for (int x=x0; x<x1; x++) {
+		uint32_t s = src[src_ls*y + x];
+		dst[dst_ls*y + x*4 + 0] = ((s>>6)&3) * 255 / 3;
+		dst[dst_ls*y + x*4 + 1] = ((s>>3)&7) * 255 / 7;
+		dst[dst_ls*y + x*4 + 2] = ((s>>0)&7) * 255 / 7;
+	}
+}
+
+static inline void copy_16bit(uint8_t *dst, int dst_ls, const uint16_t *src, int src_ls, int x0, int y0, int x1, int y1)
+{
+	for (int y=y0; y<y1; y++) for (int x=x0; x<x1; x++) {
+		uint32_t s = src[src_ls*y + x];
+		dst[dst_ls*y + x*4 + 0] = ((s>>10)&31) * 255 / 31;
+		dst[dst_ls*y + x*4 + 1] = ((s>>5)&31) * 255 / 31;
+		dst[dst_ls*y + x*4 + 2] = ((s>>0)&31) * 255 / 31;
+	}
 }
 
 static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 {
 	debug("vnc_update x=%d y=%d w=%d h=%d\n", x, y, w, h);
-	UNUSED_PARAMETER(x);
-	UNUSED_PARAMETER(y);
-	UNUSED_PARAMETER(w);
-	UNUSED_PARAMETER(h);
 
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
 	if (!src)
 		return;
+
+	if (src->config.bpp==8 && src->frame.data[0] && src->fb_vnc)
+		copy_8bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
+	else if (src->config.bpp==16 && src->frame.data[0] && src->fb_vnc)
+		copy_16bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
 
 	if (x+w < src->config.skip_update_l)
 		return;
@@ -106,10 +137,20 @@ static void set_encodings_to_client(rfbClient *client, const struct vncsrc_conig
 
 static inline rfbClient *rfbc_start(struct vnc_source *src)
 {
-	rfbClient *client = rfbGetClient(8, 3, 4);
-	client->format.redShift   = 16; client->format.redMax   = 255;
-	client->format.greenShift =  8; client->format.greenMax = 255;
-	client->format.blueShift  =  0; client->format.blueMax  = 255;
+	rfbClient *client;
+	if (src->config.bpp==8) {
+		client = rfbGetClient(8, 1, 1);
+	}
+	else if (src->config.bpp==16) {
+		client = rfbGetClient(5, 3, 2);
+	}
+	else {
+		src->config.bpp = 32;
+		client = rfbGetClient(8, 3, 4);
+		client->format.redShift   = 16; client->format.redMax   = 255;
+		client->format.greenShift =  8; client->format.greenMax = 255;
+		client->format.blueShift  =  0; client->format.blueMax  = 255;
+	}
 	src->frame.format = VIDEO_FORMAT_BGRX;
 
 	rfbClientSetClientData(client, vncsrc_thread_start, src);
@@ -247,4 +288,5 @@ void vncsrc_thread_stop(struct vnc_source *src)
 #endif
 
 	BFREE_IF_NONNULL(src->frame.data[0]);
+	BFREE_IF_NONNULL(src->fb_vnc);
 }
