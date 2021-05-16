@@ -2,6 +2,8 @@
 #define OBS_VNC_SOURCE_H
 
 #include <pthread.h>
+#include <obs.h>
+#include <util/circlebuf.h>
 
 enum vnc_encodings_e
 {
@@ -31,6 +33,30 @@ struct vncsrc_conig
 	int skip_update_l, skip_update_r, skip_update_t, skip_update_b;
 };
 
+struct vncsrc_interaction_event_s
+{
+	enum type_e {
+		mouse_click,
+		mouse_click_up,
+		mouse_move,
+		mouse_leave,
+		mouse_wheel,
+		key_click,
+		key_click_up,
+	} type;
+	union {
+		// key
+		struct obs_key_event key;
+		// mouse_click, mouse_wheel
+		struct {
+			int32_t mouse_x, mouse_y;
+			int32_t button_type;
+			int x_delta;
+			int y_delta;
+		};
+	};
+};
+
 struct vnc_source
 {
 	pthread_mutex_t config_mutex;
@@ -43,6 +69,9 @@ struct vnc_source
 
 	struct obs_source_frame frame;
 	void *fb_vnc; // for 8-bit and 16-bit
+
+	pthread_mutex_t interact_mutex;
+	struct circlebuf interacts;
 
 	// threads
 	pthread_t thread;
