@@ -8,6 +8,8 @@
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
+#define debug(fmt, ...) (void)0
+// #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
 static const char *vncsrc_get_name(void *unused)
 {
@@ -25,6 +27,8 @@ static void *vncsrc_create(obs_data_t *settings, obs_source_t *source)
 	obs_source_set_async_unbuffered(source, true);
 
 	pthread_mutex_init(&src->config_mutex, NULL);
+	circlebuf_init(&src->interacts);
+	pthread_mutex_init(&src->interact_mutex, NULL);
 
 	vncsrc_update(src, settings);
 
@@ -40,6 +44,7 @@ static void vncsrc_destroy(void *data)
 	vncsrc_thread_stop(src);
 
 	vncsrc_config_destroy_member(&src->config);
+	circlebuf_free(&src->interacts);
 	bfree(src);
 }
 
@@ -131,16 +136,76 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	return props;
 }
 
+static inline void queue_interaction(struct vnc_source *src, struct vncsrc_interaction_event_s *interact)
+{
+	debug("queuing interaction event: type=%d\n", interact->type);
+	if (!pthread_mutex_lock(&src->interact_mutex)) {
+		circlebuf_push_back(&src->interacts, interact, sizeof(*interact));
+		pthread_mutex_unlock(&src->interact_mutex);
+	}
+}
+
+static void vncsrc_mouse_click(void *data, const struct obs_mouse_event *event, int32_t type, bool mouse_up, uint32_t click_count)
+{
+	struct vnc_source *src = data;
+	struct vncsrc_interaction_event_s interact = {
+		.type = mouse_up ? mouse_click_up : mouse_click,
+		.mouse_x = event->x,
+		.mouse_y = event->y,
+		.button_type = type,
+	};
+	queue_interaction(src, &interact);
+}
+
+static void vncsrc_mouse_move(void *data, const struct obs_mouse_event *event, bool mouse_leave_)
+{
+	struct vnc_source *src = data;
+	struct vncsrc_interaction_event_s interact = {
+		.type = mouse_leave_ ? mouse_leave : mouse_move,
+		.mouse_x = event->x,
+		.mouse_y = event->y,
+	};
+	queue_interaction(src, &interact);
+}
+
+static void vncsrc_mouse_wheel(void *data, const struct obs_mouse_event *event, int x_delta, int y_delta)
+{
+	struct vnc_source *src = data;
+	struct vncsrc_interaction_event_s interact = {
+		.type = mouse_wheel,
+		.mouse_x = event->x,
+		.mouse_y = event->y,
+		.x_delta = x_delta,
+		.y_delta = y_delta,
+	};
+	queue_interaction(src, &interact);
+}
+
+static void vncsrc_key_click(void *data, const struct obs_key_event *event, bool key_up)
+{
+	struct vnc_source *src = data;
+	struct vncsrc_interaction_event_s interact = {
+		.type = key_up ? key_click_up : key_click,
+		.key = *event,
+	};
+	strncpy((char*)&interact.key.text, interact.key.text, sizeof(char*));
+	queue_interaction(src, &interact);
+}
+
 static struct obs_source_info vncsrc_src_info = {
 	.id = "obs_vnc_source",
 	.type = OBS_SOURCE_TYPE_INPUT,
-	.output_flags = OBS_SOURCE_ASYNC_VIDEO | OBS_SOURCE_DO_NOT_DUPLICATE,
+	.output_flags = OBS_SOURCE_ASYNC_VIDEO | OBS_SOURCE_DO_NOT_DUPLICATE | OBS_SOURCE_INTERACTION,
 	.get_name = vncsrc_get_name,
 	.create = vncsrc_create,
 	.destroy = vncsrc_destroy,
 	.update = vncsrc_update,
 	.get_defaults = vncsrc_get_defaults,
 	.get_properties = vncsrc_get_properties,
+	.mouse_click = vncsrc_mouse_click,
+	.mouse_move = vncsrc_mouse_move,
+	.mouse_wheel = vncsrc_mouse_wheel,
+	.key_click = vncsrc_key_click,
 };
 
 bool obs_module_load(void)
