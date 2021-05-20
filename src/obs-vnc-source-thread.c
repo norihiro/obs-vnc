@@ -172,8 +172,6 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 
 	pthread_mutex_unlock(&src->config_mutex);
 
-	blog(LOG_INFO, "rfbInitClient with serverHost=%s serverPort=%d", client->serverHost, client->serverPort);
-
 	if (!rfbInitClient(client, NULL, NULL)) {
 		// If failed, client has already been freed.
 		return NULL;
@@ -632,8 +630,9 @@ static void *thread_main(void *data)
 			}
 			if (!client) {
 				cnt_failure += 1;
-				n_wait = cnt_failure > 10 ? 100 : cnt_failure*10;
-				blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds", n_wait/10);
+				n_wait = cnt_failure >= 6 ? 600 : (10<<cnt_failure);
+				if (cnt_failure<=6)
+					blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds", n_wait/10);
 				continue;
 			}
 			memset(&state, 0, sizeof(state));
@@ -660,7 +659,6 @@ static void *thread_main(void *data)
 		}
 
 		if (src->frame.timestamp && src->source) {
-			debug("calling obs_source_output_video\n");
 			obs_source_output_video(src->source, &src->frame);
 			src->frame.timestamp = 0;
 		}
