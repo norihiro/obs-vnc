@@ -28,5 +28,5 @@ It is recommended to set the same values to the Crop settings in Scene Item Tran
 
 ## Furture plan
 
-* configurations for hide cursor, color-depth, user-name, etc.,
+* configurations for hide cursor, user-name, etc.,
 * and other items if requested.

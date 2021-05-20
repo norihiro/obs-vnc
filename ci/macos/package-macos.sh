@@ -20,7 +20,7 @@ FILENAME_UNSIGNED="$PLUGIN_NAME-${GIT_TAG}-Unsigned.pkg"
 FILENAME="$PLUGIN_NAME-${GIT_TAG}.pkg"
 
 echo "=> Modifying $PLUGIN_NAME.so"
-mkdir lib
+mkdir -p lib
 for dylib in \
 	/usr/local/opt/lzo/lib/liblzo2.2.dylib \
 	/usr/local/opt/jpeg/lib/libjpeg.9.dylib \
@@ -28,6 +28,7 @@ for dylib in \
 do
 	cp $dylib lib/
 	b=$(basename $dylib)
+	chmod +rw lib/$b
 	install_name_tool -id "@loader_path/$b" lib/$b
 	install_name_tool -change "$dylib" "@loader_path/../lib/$b" ./build/$PLUGIN_NAME.so
 done
@@ -59,6 +60,7 @@ fi
 echo "=> ZIP package build"
 ziproot=package-zip/$PLUGIN_NAME
 zipfile=${PLUGIN_NAME}-${GIT_TAG}-macos.zip
+rm -rf $ziproot/
 mkdir -p $ziproot/bin
 cp ./build/$PLUGIN_NAME.so $ziproot/bin/
 cp -a data $ziproot/
