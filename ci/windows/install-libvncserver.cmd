@@ -62,26 +62,28 @@ cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%LIBVNCPath%\deps\zlib -DZLIB_LIBRARY=
 cmake --build . --config %build_config%
 cd ..
 
-:: REM Berkeley DB - required by SASL
-:: curl -fsSL -o db-4.1.25.tar.gz http://download.oracle.com/berkeley-db/db-4.1.25.tar.gz
-:: 7z x db-4.1.25.tar.gz -so | 7z x -si -ttar > nul
-:: move db-4.1.25 db
-:: cd db\build_win32
-:: echo using devenv %DEVENV_EXE%
-:: %DEVENV_EXE% db_dll.dsp /upgrade
-:: cmake --build . --config %build_config%
-:: cd ..\..
+if %CMakeOptA% == x64 (
+	REM Berkeley DB - required by SASL
+	curl -fsSL -o db-4.1.25.tar.gz http://download.oracle.com/berkeley-db/db-4.1.25.tar.gz
+	7z x db-4.1.25.tar.gz -so | 7z x -si -ttar > nul
+	move db-4.1.25 db
+	cd db\build_win32
+	echo using devenv %DEVENV_EXE%
+	%DEVENV_EXE% db_dll.dsp /upgrade
+	cmake --build . --config %build_config%
+	cd ..\..
 
-:: REM Cyrus SASL
-:: curl -fsSL -o cyrus-sasl-2.1.27.tar.gz https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz
-:: 7z x cyrus-sasl-2.1.27.tar.gz -so | 7z x -si -ttar > nul
-:: move cyrus-sasl-2.1.27 sasl
-:: cd sasl
-:: patch -p1 -i ..\sasl-fix-snprintf-macro.patch
-:: echo using vsdevcmd %VSDEVCMD_BAT%
-:: '%VSDEVCMD_BAT%'
-:: nmake /f NTMakefile OPENSSL_INCLUDE=c:\OpenSSL-Win32\include OPENSSL_LIBPATH=c:\OpenSSL-Win32\lib DB_INCLUDE=c:\projects\libvncserver\deps\db\build_win32 DB_LIBPATH=c:\projects\libvncserver\deps\db\build_win32\release DB_LIB=libdb41.lib install
-:: cd ..
+	REM Cyrus SASL
+	curl -fsSL -o cyrus-sasl-2.1.27.tar.gz https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-2.1.27/cyrus-sasl-2.1.27.tar.gz
+	7z x cyrus-sasl-2.1.27.tar.gz -so | 7z x -si -ttar > nul
+	move cyrus-sasl-2.1.27 sasl
+	cd sasl
+	patch -p1 -i ..\sasl-fix-snprintf-macro.patch
+	echo using vsdevcmd %VSDEVCMD_BAT%
+	'%VSDEVCMD_BAT%'
+	nmake /f NTMakefile OPENSSL_INCLUDE=c:\OpenSSL-Win32\include OPENSSL_LIBPATH=c:\OpenSSL-Win32\lib DB_INCLUDE=c:\projects\libvncserver\deps\db\build_win32 DB_LIBPATH=c:\projects\libvncserver\deps\db\build_win32\release DB_LIB=libdb41.lib install
+	cd ..
+)
 
 REM go back to source root
 cd ..

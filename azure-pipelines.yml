@@ -1,7 +1,7 @@
 variables:
   macosSignAndNotarize: false
   isReleaseMode: ${{ and(eq(variables['isReleaseMode'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/')) }}
-  buildWin32: true
+  buildWin32: false
   buildWin64: true
   OBSLatestTag: 26.1.2
 
@@ -60,12 +60,14 @@ jobs:
       env:
         LIBVNCPath: $(LIBVNCPathBase)-x64
         CMakeOptA: x64
+      condition: eq(variables['buildWin64'], true)
 
     - script: ./ci/windows/install-libvncserver.cmd
       displayName: 'Prepare libvncserver 32-bit'
       env:
         LIBVNCPath: $(LIBVNCPathBase)-Win32
         CMakeOptA: Win32
+      condition: eq(variables['buildWin32'], true)
 
     - script: ./ci/windows/prepare-obs-windows.cmd
       displayName: 'Checkout & CMake OBS Studio'
