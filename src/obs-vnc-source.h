@@ -29,6 +29,14 @@ struct vncsrc_conig
 	bool jpeg;
 	int quality;
 	int qosdscp;
+	enum connect_e {
+		connect_always = 0,
+		connect_at_shown = 1,
+		connect_at_active = 2,
+		connect_at_shown_disconnect_at_hidden = 1+4,
+		connect_at_active_disconnect_at_hidden = 2+4,
+		connect_at_active_disconnect_at_inactive = 2+8,
+	} connect_opt;
 
 	int skip_update_l, skip_update_r, skip_update_t, skip_update_b;
 };
@@ -57,15 +65,20 @@ struct vncsrc_interaction_event_s
 	};
 };
 
+// for display_flags
+#define VNCSRC_FLG_SHOWN 1
+#define VNCSRC_FLG_ACTIVE 2
+
 struct vnc_source
 {
 	pthread_mutex_t config_mutex;
-	struct vncsrc_conig config;
+	volatile struct vncsrc_conig config;
 	obs_source_t *source;
 	volatile bool need_reconnect;
 	volatile bool encoding_updated;
 	volatile bool dscp_updated;
 	volatile bool running;
+	volatile long display_flags;
 
 	struct obs_source_frame frame;
 	void *fb_vnc; // for 8-bit and 16-bit
@@ -82,7 +95,7 @@ void vncsrc_thread_stop(struct vnc_source *src);
 
 #define BFREE_IF_NONNULL(x) if (x) { bfree(x); (x) = NULL; }
 
-static inline void vncsrc_config_destroy_member(struct vncsrc_conig *c)
+static inline void vncsrc_config_destroy_member(volatile struct vncsrc_conig *c)
 {
 	BFREE_IF_NONNULL(c->host_name);
 	BFREE_IF_NONNULL(c->plain_passwd);

@@ -78,6 +78,7 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	UPDATE_NOTIFY(src, bool, jpeg, encoding_updated, obs_data_get_bool(settings, "jpeg"));
 	UPDATE_NOTIFY(src, int, quality, encoding_updated, obs_data_get_int(settings, "quality"));
 	UPDATE_NOTIFY(src, int, qosdscp, dscp_updated, obs_data_get_int(settings, "qosdscp"));
+	src->config.connect_opt = obs_data_get_int(settings, "connect_opt");
 
 	src->config.skip_update_l = obs_data_get_int(settings, "skip_update_l");
 	src->config.skip_update_r = obs_data_get_int(settings, "skip_update_r");
@@ -127,6 +128,13 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_bool(props, "jpeg", obs_module_text("Enable JPEG"));
 	obs_properties_add_int(props, "quality", obs_module_text("Quality level for JPEG (0=poor, 9=best)"), 0, 9, 1);
 	obs_properties_add_int(props, "qosdscp", obs_module_text("QoS DSCP"), 0, 255, 1);
+	prop = obs_properties_add_list(props, "connect_opt", "Connection timing", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(prop, "Always", connect_always);
+	obs_property_list_add_int(prop, "Connect at shown", connect_at_shown);
+	obs_property_list_add_int(prop, "Connect at shown, disconnect at hidden", connect_at_shown_disconnect_at_hidden);
+	obs_property_list_add_int(prop, "Connect at activated", connect_at_active);
+	obs_property_list_add_int(prop, "Connect at activated, disconnect at hidden", connect_at_active_disconnect_at_hidden);
+	obs_property_list_add_int(prop, "Connect at activated, disconnect at inactive", connect_at_active_disconnect_at_inactive);
 
 	obs_properties_add_int(props, "skip_update_l", obs_module_text("Skip update (left)"), 0, 32767, 1);
 	obs_properties_add_int(props, "skip_update_r", obs_module_text("Skip update (right)"), 0, 32767, 1);
@@ -143,6 +151,34 @@ static inline void queue_interaction(struct vnc_source *src, struct vncsrc_inter
 		circlebuf_push_back(&src->interacts, interact, sizeof(*interact));
 		pthread_mutex_unlock(&src->interact_mutex);
 	}
+}
+
+static void vncsrc_show(void *data)
+{
+	struct vnc_source *src = data;
+	long f = os_atomic_load_long(&src->display_flags);
+	os_atomic_set_long(&src->display_flags, f | VNCSRC_FLG_SHOWN);
+}
+
+static void vncsrc_hide(void *data)
+{
+	struct vnc_source *src = data;
+	long f = os_atomic_load_long(&src->display_flags);
+	os_atomic_set_long(&src->display_flags, f &~VNCSRC_FLG_SHOWN);
+}
+
+static void vncsrc_activate(void *data)
+{
+	struct vnc_source *src = data;
+	long f = os_atomic_load_long(&src->display_flags);
+	os_atomic_set_long(&src->display_flags, f | VNCSRC_FLG_ACTIVE);
+}
+
+static void vncsrc_deactivate(void *data)
+{
+	struct vnc_source *src = data;
+	long f = os_atomic_load_long(&src->display_flags);
+	os_atomic_set_long(&src->display_flags, f &~VNCSRC_FLG_ACTIVE);
 }
 
 static void vncsrc_mouse_click(void *data, const struct obs_mouse_event *event, int32_t type, bool mouse_up, uint32_t click_count)
@@ -202,6 +238,10 @@ static struct obs_source_info vncsrc_src_info = {
 	.update = vncsrc_update,
 	.get_defaults = vncsrc_get_defaults,
 	.get_properties = vncsrc_get_properties,
+	.show = vncsrc_show,
+	.hide = vncsrc_hide,
+	.activate = vncsrc_activate,
+	.deactivate = vncsrc_deactivate,
 	.mouse_click = vncsrc_mouse_click,
 	.mouse_move = vncsrc_mouse_move,
 	.mouse_wheel = vncsrc_mouse_wheel,

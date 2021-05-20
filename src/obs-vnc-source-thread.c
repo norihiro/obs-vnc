@@ -120,7 +120,7 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 		src->frame.timestamp = os_gettime_ns();
 }
 
-static void set_encodings_to_client(rfbClient *client, const struct vncsrc_conig *config)
+static void set_encodings_to_client(rfbClient *client, const volatile struct vncsrc_conig *config)
 {
 	switch (config->encodings) {
 		case ve_tight: client->appData.encodingsString = "tight copyrect"; break;
@@ -603,20 +603,68 @@ static void *thread_main(void *data)
 	int cnt_failure = 0;
 	rfbClient *client = NULL;
 	struct vncsrc_keymouse_state_s state;
+	uint8_t display_flags_prev = 0;
 
 	while (src->running) {
+		bool just_wait = false;
+		int display_flags = os_atomic_load_long(&src->display_flags);
 		if (src->need_reconnect) {
 			if (client) {
 				rfbClientCleanup(client);
 				client = NULL;
-				cnt_failure = 0;
-				n_wait = 0;
 			}
+			cnt_failure = 0;
+			n_wait = 0;
 			src->need_reconnect = false;
 		}
-		else if (cnt_failure && n_wait>0) {
+		else if (!client) {
+			bool attempt_to_connect = false;
+			if (src->config.connect_opt == connect_always) {
+				if ((display_flags & ~display_flags_prev) & (VNCSRC_FLG_SHOWN | VNCSRC_FLG_ACTIVE))
+					n_wait = 0;
+				attempt_to_connect = true;
+			}
+			else if (src->config.connect_opt & connect_at_shown) {
+				if ((display_flags & ~display_flags_prev) & (VNCSRC_FLG_SHOWN | VNCSRC_FLG_ACTIVE))
+					n_wait = 0;
+				if (display_flags & VNCSRC_FLG_SHOWN)
+					attempt_to_connect = true;
+			}
+			else if (src->config.connect_opt & connect_at_active) {
+				if ((display_flags & ~display_flags_prev) & VNCSRC_FLG_ACTIVE)
+					n_wait = 0;
+				if (display_flags & VNCSRC_FLG_ACTIVE)
+					attempt_to_connect = true;
+			}
+			if (attempt_to_connect) {
+				if (n_wait > 0) {
+					just_wait = true;
+					n_wait--;
+				}
+			}
+			else
+				just_wait = true;
+		}
+		else if (client) {
+			bool to_disconnect = false;
+			if (src->config.connect_opt & (connect_at_shown_disconnect_at_hidden & ~connect_at_shown)) {
+				if (~display_flags & VNCSRC_FLG_SHOWN)
+					to_disconnect = true;
+			}
+			else if (src->config.connect_opt & (connect_at_active_disconnect_at_inactive & ~connect_at_active)) {
+				if (~display_flags & VNCSRC_FLG_ACTIVE)
+					to_disconnect = true;
+			}
+			if (to_disconnect) {
+				rfbClientCleanup(client);
+				client = NULL;
+				just_wait = true;
+			}
+		}
+		display_flags_prev = display_flags;
+
+		if (just_wait) {
 			os_sleep_ms(100);
-			n_wait--;
 			continue;
 		}
 
