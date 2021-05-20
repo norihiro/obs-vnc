@@ -67,6 +67,8 @@ cp -a data $ziproot/
 mkdir -p ./release
 chmod +x lib/*.dylib
 mv lib $ziproot/
+mkdir $ziproot/doc
+cp LICENSE $ziproot/doc/
 (cd package-zip && zip -r ../release/$zipfile $PLUGIN_NAME)
 
 echo "=> DMG package build"
