@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <obs.h>
 #include <util/circlebuf.h>
+#include <rfb/rfbconfig.h>
 
 enum vnc_encodings_e
 {
@@ -21,7 +22,9 @@ struct vncsrc_conig
 {
 	char *host_name;
 	int host_port;
-	// TODO: char *user_name;
+#ifdef LIBVNCSERVER_HAVE_SASL
+	char *user_name;
+#endif // LIBVNCSERVER_HAVE_SASL
 	char *plain_passwd;
 	int bpp; // bits per pixel; 8, 16, [32] only.
 	int encodings;

@@ -34,6 +34,19 @@
 #define debug(fmt, ...) (void)0
 // #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
+#ifdef LIBVNCSERVER_HAVE_SASL
+static char *vnc_username(rfbClient* client)
+{
+	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
+
+	pthread_mutex_lock(&src->config_mutex);
+	char *ret = strdup(src->config.user_name ? src->config.user_name : "");
+	pthread_mutex_unlock(&src->config_mutex);
+
+	return ret;
+}
+#endif // LIBVNCSERVER_HAVE_SASL
+
 static char *vnc_passwd(rfbClient* client)
 {
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
@@ -159,6 +172,9 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 	rfbClientSetClientData(client, vncsrc_thread_start, src);
 	client->MallocFrameBuffer = vnc_malloc_fb;
 	client->GotFrameBufferUpdate = vnc_update;
+#ifdef LIBVNCSERVER_HAVE_SASL
+	client->GetUser = vnc_username;
+#endif // LIBVNCSERVER_HAVE_SASL
 	client->GetPassword = vnc_passwd;
 	client->programName = "obs-vnc-src";
 	client->canHandleNewFBSize = 1;

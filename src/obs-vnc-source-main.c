@@ -72,6 +72,19 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		src->need_reconnect = true;
 	}
 
+#ifdef LIBVNCSERVER_HAVE_SASL
+	const char *user_name = obs_data_get_string(settings, "user_name");
+	if (user_name && !*user_name) {
+		BFREE_IF_NONNULL(src->config.user_name);
+		src->need_reconnect = true;
+	}
+	else if (user_name && (!src->config.user_name || strcmp(user_name, src->config.user_name))) {
+		BFREE_IF_NONNULL(src->config.user_name);
+		src->config.user_name = bstrdup(user_name);
+		src->need_reconnect = true;
+	}
+#endif // LIBVNCSERVER_HAVE_SASL
+
 	UPDATE_NOTIFY(src, int, bpp, need_reconnect, obs_data_get_int(settings, "bpp"));
 	UPDATE_NOTIFY(src, int, encodings, encoding_updated, obs_data_get_int(settings, "encodings"));
 	UPDATE_NOTIFY(src, int, compress, encoding_updated, obs_data_get_int(settings, "compress"));
@@ -109,6 +122,9 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_text(props, "host_name", obs_module_text("Host name"), OBS_TEXT_DEFAULT);
 	obs_properties_add_int(props, "host_port", obs_module_text("Host port"), 1, 65535, 1);
 	obs_properties_add_text(props, "plain_passwd", obs_module_text("Password"), OBS_TEXT_PASSWORD);
+#ifdef LIBVNCSERVER_HAVE_SASL
+	obs_properties_add_text(props, "user_name", obs_module_text("User name"), OBS_TEXT_DEFAULT);
+#endif // LIBVNCSERVER_HAVE_SASL
 
 	prop = obs_properties_add_list(props, "bpp", "Color level", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
 	obs_property_list_add_int(prop, "24-bit", 32);
