@@ -4,6 +4,8 @@
 
 This plugin is a VNC viewer that works as a source in OBS Studio.
 
+List of properties are available [here](doc/properties.md).
+
 ## Preparing a VNC Server
 ### Windows
 If you are to view Windows desktop by this plugin, these two VNC server applications are my recommendation.
