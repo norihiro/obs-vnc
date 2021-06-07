@@ -7,6 +7,10 @@ Host name or IP address for VNC server.
 Port number for VNC server.
 Default is 5900.
 
+### User name
+Specifies user name for SASL authentication.
+This field is available if the plugin is built with libvncserver having SASL.
+
 ### Password
 Password for VNC server.
 Plain password is stored in the setting file.
