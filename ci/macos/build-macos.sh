@@ -17,8 +17,7 @@ fi
 
 #export QT_PREFIX="$(find /usr/local/Cellar/qt5 -d 1 | tail -n 1)"
 
-# workaround that -DLIBVNCCLIENT_INCLUDE_DIRS cannot accept two or more paths
-cp -a ../libvncserver/build/rfb/rfbconfig.h ../libvncserver/rfb/
+grep LIBVNCSERVER_HAVE_SASL ../libvncserver/build/rfb/rfbconfig.h
 
 echo "=> Building plugin for macOS."
 mkdir -p build && cd build
@@ -27,7 +26,7 @@ cmake .. \
 	-DLIBOBS_INCLUDE_DIR=../../obs-studio/libobs \
 	-DLIBOBS_LIB=../../obs-studio/libobs \
 	-DOBS_FRONTEND_LIB="$(pwd)/../../obs-studio/build/UI/obs-frontend-api/libobs-frontend-api.dylib" \
-	-DLIBVNCCLIENT_INCLUDE_DIRS="$(pwd)/../../libvncserver" \
+	-DLIBVNCCLIENT_INCLUDE_DIRS="$(pwd)/../../libvncserver;$(pwd)/../../libvncserver/build" \
 	-DLIBVNCCLIENT_LIB_DIRS="$(pwd)/../../libvncserver/build" \
 	-DLIBVNCCLIENT_LIBRARIES="$(pwd)/../../libvncserver/build/libvncclient.a;/usr/local/lib/liblzo2.dylib;/usr/local/lib/libjpeg.dylib;/usr/local/lib/libpng.dylib;libsasl2.tbd;libz.tbd" \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
