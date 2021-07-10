@@ -80,6 +80,7 @@ struct vnc_source
 	volatile bool need_reconnect;
 	volatile bool encoding_updated;
 	volatile bool dscp_updated;
+	volatile bool skip_updated;
 	volatile bool running;
 	volatile long display_flags;
 
