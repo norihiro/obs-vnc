@@ -100,6 +100,8 @@ cmake ^
 -DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
 -DJPEG_INCLUDE_DIR=%LIBVNCPath%/deps/libjpeg -DJPEG_LIBRARY=./deps/libjpeg/%build_config%/turbojpeg-static ^
 -DWITH_SDL=OFF -DWITH_GTK=OFF -DWITH_SYSTEMD=OFF -DWITH_FFMPEG=OFF ^
+-D LIBVNCSERVER_INSTALL=OFF ^
+-D WITH_TIGHTVNC_FILETRANSFER=OFF ^
 .
 cmake --build . --config %build_config%
 dir /S
