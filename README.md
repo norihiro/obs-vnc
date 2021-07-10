@@ -24,8 +24,7 @@ The generic VNC protocol does not have an option to select display.
 Most VNC servers send whole desktop but some VNC servers for Windows have the ability to select a display.
 
 As a workaround of multi-display, the plugin provides settings `Skip update (left/right/top/bottom)`.
-Still the plugin receives the picture from the VNC server,
-these settings will discard an update-notification that goes to the graphics engine of OBS-Studio if all the updated region from the VNC-server is in the range of the values provided by these settings.
+these settings will avoid tranfering unnecessary picture.
 It is recommended to set the same values to the Crop settings in Scene Item Transform of your source.
 
 ## Furture plan

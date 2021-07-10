@@ -34,6 +34,8 @@
 #define debug(fmt, ...) (void)0
 // #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
+static inline int max_int(int a, int b) { return (a<b) ? b : a; }
+
 #ifdef LIBVNCSERVER_HAVE_SASL
 static char *vnc_username(rfbClient* client)
 {
@@ -58,6 +60,23 @@ static char *vnc_passwd(rfbClient* client)
 	return ret;
 }
 
+static void set_updateRect(struct vnc_source *src, rfbClient *client)
+{
+	if (client->width<=0 || client->height<=0) {
+		debug("set_updateRect resetting updateRect: width=%d height=%d", client->width, client->height);
+		client->updateRect.x = -1;
+		client->updateRect.y = client->updateRect.w = client->updateRect.h = 0;
+		return;
+	}
+	pthread_mutex_lock(&src->config_mutex);
+	client->updateRect.x = src->config.skip_update_l;
+	client->updateRect.y = src->config.skip_update_t;
+	client->updateRect.w = max_int(client->width - (src->config.skip_update_l + src->config.skip_update_r), 0);
+	client->updateRect.h = max_int(client->height - (src->config.skip_update_t + src->config.skip_update_b), 0);
+	src->skip_updated = false;
+	pthread_mutex_unlock(&src->config_mutex);
+}
+
 static rfbBool vnc_malloc_fb(rfbClient* client)
 {
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
@@ -68,6 +87,7 @@ static rfbBool vnc_malloc_fb(rfbClient* client)
 
 	src->frame.width = client->width;
 	src->frame.height = client->height;
+	set_updateRect(src, client);
 
 	src->frame.linesize[0] = client->width * 4;
 	BFREE_IF_NONNULL(src->frame.data[0]);
@@ -119,15 +139,6 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 		copy_8bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
 	else if (src->config.bpp==16 && src->frame.data[0] && src->fb_vnc)
 		copy_16bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
-
-	if (x+w < src->config.skip_update_l)
-		return;
-	if (x > src->frame.width - src->config.skip_update_r)
-		return;
-	if (y+h < src->config.skip_update_t)
-		return;
-	if (y > src->frame.height - src->config.skip_update_b)
-		return;
 
 	if (!src->frame.timestamp)
 		src->frame.timestamp = os_gettime_ns();
@@ -715,6 +726,12 @@ static void *thread_main(void *data)
 			if (src->dscp_updated) {
 				SetDSCP(client->sock, client->QoS_DSCP = src->config.qosdscp);
 				src->dscp_updated = false;
+			}
+			if (src->skip_updated) {
+				set_updateRect(src, client);
+				SendFramebufferUpdateRequest(client,
+						client->updateRect.x, client->updateRect.y,
+						client->updateRect.w, client->updateRect.h, 0);
 			}
 			if (rfbc_poll(src, client)) {
 				rfbClientCleanup(client);

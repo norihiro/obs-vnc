@@ -49,7 +49,7 @@ Specifies when to connect to the server and when to disconnect from the server.
 - Disconnect at inactive: When the source is not shown on the Program, the connection will be disconnected.
 The default is Always.
 
-### Skip update
-VNC usually sends only the updated region.
-With this option, the source will ignore the notification that updates the frame outside the specified region.
-It will be useful to reduce frame transfer from CPU to GPU inside OBS Studio.
+### Skip update (left, right, top, bottom)
+This property requests the server to send only inside the specified area.
+It will help to reduce the amount of data transferred from the VNC server.
+It is recommended to set the same values to the Crop settings in Scene Item Transform of your source.

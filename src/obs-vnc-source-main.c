@@ -93,10 +93,10 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	UPDATE_NOTIFY(src, int, qosdscp, dscp_updated, obs_data_get_int(settings, "qosdscp"));
 	src->config.connect_opt = obs_data_get_int(settings, "connect_opt");
 
-	src->config.skip_update_l = obs_data_get_int(settings, "skip_update_l");
-	src->config.skip_update_r = obs_data_get_int(settings, "skip_update_r");
-	src->config.skip_update_t = obs_data_get_int(settings, "skip_update_t");
-	src->config.skip_update_b = obs_data_get_int(settings, "skip_update_b");
+	UPDATE_NOTIFY(src, int, skip_update_l, skip_updated, obs_data_get_int(settings, "skip_update_l"));
+	UPDATE_NOTIFY(src, int, skip_update_r, skip_updated, obs_data_get_int(settings, "skip_update_r"));
+	UPDATE_NOTIFY(src, int, skip_update_t, skip_updated, obs_data_get_int(settings, "skip_update_t"));
+	UPDATE_NOTIFY(src, int, skip_update_b, skip_updated, obs_data_get_int(settings, "skip_update_b"));
 
 	pthread_mutex_unlock(&src->config_mutex);
 }
