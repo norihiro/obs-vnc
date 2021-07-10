@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 project(obs-vnc)
 set(CMAKE_PROJECT_VERSION 0.3.1) # update cmake to 3.12 or later, then put to 'project'
@@ -10,7 +10,6 @@ set(LINUX_MAINTAINER_EMAIL "norihiro@nagater.net")
 # TAKE NOTE: No need to edit things past this point
 
 set(CMAKE_PREFIX_PATH "${QTDIR}")
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # In case you need C++
 set(CMAKE_CXX_STANDARD 11)
@@ -118,11 +117,24 @@ if(WIN32)
 	set(RELEASE_DIR "${PROJECT_SOURCE_DIR}/release")
 
     add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E make_directory "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}" "${RELEASE_DIR}/obs-plugins/${ARCH_NAME}"
+        # If config is Release or RelWithDebInfo, package release files
+        COMMAND if $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>==1 (
+            "${CMAKE_COMMAND}" -E make_directory
+                "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}"
+                "${RELEASE_DIR}/obs-plugins/${ARCH_NAME}"
+        )
 
-        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${PROJECT_SOURCE_DIR}/data" "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}"
+        COMMAND if $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>==1 (
+            "${CMAKE_COMMAND}" -E copy_directory
+                "${PROJECT_SOURCE_DIR}/data"
+                "${RELEASE_DIR}/data/obs-plugins/${CMAKE_PROJECT_NAME}"
+        )
 
-        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>" "${RELEASE_DIR}/obs-plugins/${ARCH_NAME}/"
+        COMMAND if $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>==1 (
+            "${CMAKE_COMMAND}" -E copy
+                "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>"
+                "${RELEASE_DIR}/obs-plugins/${ARCH_NAME}"
+        )
 
         # If config is RelWithDebInfo, copy the pdb file
         COMMAND if $<CONFIG:RelWithDebInfo>==1 (
@@ -172,13 +184,11 @@ if(UNIX AND NOT APPLE)
 	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
 	target_link_libraries(${CMAKE_PROJECT_NAME} obs-frontend-api)
 
-	file(GLOB locale_files data/locale/*.ini)
-
 	install(TARGETS ${CMAKE_PROJECT_NAME}
 		LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/obs-plugins")
 
-	install(FILES ${locale_files}
-		DESTINATION "${CMAKE_INSTALL_FULL_DATAROOTDIR}/obs/obs-plugins/${CMAKE_PROJECT_NAME}/locale")
+	install(DIRECTORY data/
+		DESTINATION "${CMAKE_INSTALL_FULL_DATAROOTDIR}/obs/obs-plugins/${CMAKE_PROJECT_NAME}")
 endif()
 # --- End of section ---
 

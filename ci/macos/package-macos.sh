@@ -21,17 +21,23 @@ FILENAME="$PLUGIN_NAME-${GIT_TAG}.pkg"
 
 echo "=> Modifying $PLUGIN_NAME.so"
 mkdir -p lib
-for dylib in \
-	/usr/local/opt/lzo/lib/liblzo2.2.dylib \
-	/usr/local/opt/jpeg/lib/libjpeg.9.dylib \
-	/usr/local/opt/libpng/lib/libpng16.16.dylib
-do
-	cp $dylib lib/
-	b=$(basename $dylib)
-	chmod +rw lib/$b
-	install_name_tool -id "@loader_path/$b" lib/$b
-	install_name_tool -change "$dylib" "@loader_path/../lib/$b" ./build/$PLUGIN_NAME.so
-done
+
+function copy_local_dylib
+{
+	local dylib
+	otool -L $1 | awk '/^	\/usr\/local\/(opt|Cellar)\/.*\.dylib/{print $1}' |
+	while read -r dylib; do
+		echo "Changing dependency $1 -> $dylib"
+		local b=$(basename $dylib)
+		if test ! -e lib/$b; then
+			cp $dylib lib/
+			chmod +rwx lib/$b
+			install_name_tool -id "@loader_path/$b" lib/$b
+			copy_local_dylib lib/$b
+		fi
+		install_name_tool -change "$dylib" "@loader_path/../lib/$b" $1
+	done
+}
 
 install_name_tool \
 	-change /tmp/obsdeps/lib/QtWidgets.framework/Versions/5/QtWidgets \
@@ -42,12 +48,15 @@ install_name_tool \
 		@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore \
 	./build/$PLUGIN_NAME.so
 
+copy_local_dylib ./build/${PLUGIN_NAME}.so
+
 # Check if replacement worked
 for dylib in ./build/$PLUGIN_NAME.so lib/*.dylib ; do
+	test -f "$dylib" || continue
+	chmod +r $dylib
 	echo "=> Dependencies for $(basename $dylib)"
 	otool -L $dylib
-	echo "=> Search paths written in $(basename $dylib)"
-	otool -l $dylib
+	echo
 done
 
 if [[ "$RELEASE_MODE" == "True" ]]; then
@@ -60,15 +69,13 @@ fi
 echo "=> ZIP package build"
 ziproot=package-zip/$PLUGIN_NAME
 zipfile=${PLUGIN_NAME}-${GIT_TAG}-macos.zip
-rm -rf $ziproot/
+rm -rf ${ziproot:?}/
 mkdir -p $ziproot/bin
 cp ./build/$PLUGIN_NAME.so $ziproot/bin/
+cp LICENSE data/LICENSE-$PLUGIN_NAME
 cp -a data $ziproot/
 mkdir -p ./release
-chmod +x lib/*.dylib
-mv lib $ziproot/
-mkdir $ziproot/doc
-cp LICENSE $ziproot/doc/
+rmdir lib || mv lib $ziproot/
 (cd package-zip && zip -r ../release/$zipfile $PLUGIN_NAME)
 
 echo "=> DMG package build"
