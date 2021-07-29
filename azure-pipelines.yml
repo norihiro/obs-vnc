@@ -108,6 +108,8 @@ jobs:
 
     - script: ./ci/windows/package-windows.cmd
       displayName: 'Package Plugin'
+      env:
+        LIBVNCPath64: $(LIBVNCPathBase)-x64
 
     - task: PublishBuildArtifacts@1
       displayName: 'Upload package artifacts'
