@@ -73,6 +73,9 @@ rm -rf ${ziproot:?}/
 mkdir -p $ziproot/bin
 cp ./build/$PLUGIN_NAME.so $ziproot/bin/
 cp LICENSE data/LICENSE-$PLUGIN_NAME
+cp /usr/local/opt/jpeg/README data/README-jpeg
+cp /usr/local/opt/libpng/LICENSE data/LICENSE-libpng
+cp /usr/local/opt/lzo/COPYING data/COPYING-lzo
 cp -a data $ziproot/
 mkdir -p ./release
 rmdir lib || mv lib $ziproot/
