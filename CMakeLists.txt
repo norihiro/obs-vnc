@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(obs-vnc)
-set(CMAKE_PROJECT_VERSION 0.3.1) # update cmake to 3.12 or later, then put to 'project'
+set(CMAKE_PROJECT_VERSION 0.4.0) # update cmake to 3.12 or later, then put to 'project'
 
 set(PLUGIN_AUTHOR "Norihiro Kamae")
 set(MACOS_BUNDLEID "net.nagater.obs-vnc")
