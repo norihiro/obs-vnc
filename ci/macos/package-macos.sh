@@ -114,7 +114,7 @@ if [[ "$RELEASE_MODE" == "True" ]]; then
 	done
 
 	t=10
-	while read -u 3 REQUEST_UUID FILENAME; do
+	while read -r -u 3 REQUEST_UUID FILENAME; do
 		echo "=> Wait for notarization result of $REQUEST_UUID $FILENAME"
 		# Pieces of code borrowed from rednoah/notarized-app
 		while sleep $t && date; do
