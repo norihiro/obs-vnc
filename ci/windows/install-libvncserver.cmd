@@ -3,7 +3,7 @@ if not exist %LIBVNCPath% (
 	git clone https://github.com/LibVNC/libvncserver.git %LIBVNCPath%
 	cd /D %LIBVNCPath%\
 	git describe --tags --abbrev=0 --exclude="*-rc*" > "%LIBVNCPath%\latest-tag.txt"
-    set /p OBSLatestTag=<"%LIBVNCPath%\latest-tag.txt"
+	set /p OBSLatestTag=<"%LIBVNCPath%\latest-tag.txt"
 )
 
 cd /D %LIBVNCPath%\
@@ -104,4 +104,3 @@ cmake ^
 -D WITH_TIGHTVNC_FILETRANSFER=OFF ^
 .
 cmake --build . --config %build_config%
-dir /S
