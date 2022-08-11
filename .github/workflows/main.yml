@@ -254,7 +254,8 @@ jobs:
     env:
       visualStudio: 'Visual Studio 17 2022'
       Configuration: 'RelWithDebInfo'
-      LIBVNCPath: ${{ github.workspace }}'\libvncserver'
+      LIBVNCPath: ${{ github.workspace }}\libvncserver
+      OBSDeps: ${{ github.workspace }}\obs-build-dependencies\plugin-deps-x64
     defaults:
       run:
         shell: pwsh
@@ -286,7 +287,7 @@ jobs:
             "-DCMAKE_PREFIX_PATH=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
             "-DLIBVNCCLIENT_INCLUDE_DIRS=%LIBVNCPath%"
             "-DLIBVNCCLIENT_STATIC_LIBRARY_DIRS=%LIBVNCPath%"
-            "-DLIBVNCCLIENT_STATIC_LIBRARIES=%LIBVNCPath%\RelWithDebInfo\vncclient.lib;%LIBVNCPath%\deps\zlib\RelWithDebInfo\zlibstatic.lib;%LIBVNCPath%\deps\lzo\build\RelWithDebInfo\lzo2.lib;%LIBVNCPath%\deps\libpng\RelWithDebInfo\libpng16_static.lib;%LIBVNCPath%\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
+            "-DLIBVNCCLIENT_STATIC_LIBRARIES=%LIBVNCPath%\RelWithDebInfo\vncclient.lib;%OBSDeps%\lib\zlib.lib;%LIBVNCPath%\deps\lzo\build\RelWithDebInfo\lzo2.lib;%LIBVNCPath%\deps\libpng\RelWithDebInfo\libpng16_static.lib;%LIBVNCPath%\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
           )
           cmake -S . -B build @CmakeArgs
           cmake --build build --config RelWithDebInfo -j 4
