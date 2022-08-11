@@ -45,8 +45,9 @@ cd %LIBVNCPath%\deps
 
 echo Downloading libpng...
 curl -fsSL -o libpng.tar.gz http://prdownloads.sourceforge.net/libpng/libpng-1.6.28.tar.gz?download
+curl -fsSL -o libpng.tar.gz https://downloads.sourceforge.net/project/libpng/libpng16/1.6.37/libpng-1.6.37.tar.gz
 7z x libpng.tar.gz -so | 7z x -si -ttar > nul
-move libpng-1.6.28 libpng
+move libpng-1.6.37 libpng
 echo Building libpng...
 cd libpng
 cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%OBSDeps%\include -DZLIB_LIBRARY=%OBSDeps%\lib\zlib.lib
