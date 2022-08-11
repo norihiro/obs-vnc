@@ -15,3 +15,6 @@ sudo ed /usr/local/lib/pkgconfig/libvncclient.pc <<-EOF
 .s;Libs: ;Libs: -L/usr/local/lib -L/usr/local/opt/jpeg-turbo/lib -L/usr/local/opt/openssl@1.1/lib ;
 wq
 EOF
+
+#for debug
+cat /usr/local/lib/pkgconfig/libvncclient.pc
