@@ -281,9 +281,9 @@ jobs:
             '-DCMAKE_SYSTEM_VERSION=10.0.18363.657'
             "-DCMAKE_INSTALL_PREFIX=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
             "-DCMAKE_PREFIX_PATH=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
-            "-DLIBVNCCLIENT_INCLUDE_DIRS=%LIBVNCPath%"
-            "-DLIBVNCCLIENT_STATIC_LIBRARY_DIRS=%LIBVNCPath%"
-            "-DLIBVNCCLIENT_STATIC_LIBRARIES=%LIBVNCPath%\RelWithDebInfo\vncclient.lib;%OBSDeps%\lib\zlib.lib;%LIBVNCPath%\deps\lzo\build\RelWithDebInfo\lzo2.lib;%LIBVNCPath%\deps\libpng\RelWithDebInfo\libpng16_static.lib;%LIBVNCPath%\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
+            "-DLIBVNCCLIENT_INCLUDE_DIRS=${{ env.LIBVNCPath }}"
+            "-DLIBVNCCLIENT_STATIC_LIBRARY_DIRS=${{ env.LIBVNCPath }}"
+            "-DLIBVNCCLIENT_STATIC_LIBRARIES=${{ env.LIBVNCPath }}\RelWithDebInfo\vncclient.lib;${{ env.OBSDeps }}\lib\zlib.lib;${{ env.LIBVNCPath }}\deps\lzo\build\RelWithDebInfo\lzo2.lib;${{ env.LIBVNCPath }}\deps\libpng\RelWithDebInfo\libpng16_static.lib;${{ env.LIBVNCPath }}\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
           )
           cmake -S . -B build @CmakeArgs
           cmake --build build --config RelWithDebInfo -j 4
