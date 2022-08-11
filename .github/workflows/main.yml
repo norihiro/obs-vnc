@@ -180,6 +180,8 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} \
             -DCMAKE_FRAMEWORK_PATH="$deps/Frameworks;$deps/lib/cmake;$deps" \
             -D PKG_SUFFIX=$PKG_SUFFIX
+          echo 'build/CMakeCache.txt:'
+          cat build/CMakeCache.txt
           cmake --build build --config RelWithDebInfo
           echo "PKG_SUFFIX='$PKG_SUFFIX'" >> ci/ci_includes.generated.sh
 
