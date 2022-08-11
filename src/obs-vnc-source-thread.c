@@ -576,11 +576,11 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 			key += (ie->key.modifiers & INTERACT_SHIFT_KEY) ? 0x40 : 0x60;
 		else if (0x1B <= key && key < 0x1F && ie->key.modifiers & INTERACT_CONTROL_KEY)
 			key += 0x40;
-		else
+		else /* clang-format off */
 #endif // _WIN32
 		if (vkey) {
 			key = vkey;
-		}
+		} /* clang-format on */
 
 #ifdef __APPLE__
 		int mm[][2] = {
