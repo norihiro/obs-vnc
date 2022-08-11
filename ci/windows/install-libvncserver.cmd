@@ -32,15 +32,6 @@ cmake -A %CMakeOptA% ..
 cmake --build . --config %build_config%
 cd %LIBVNCPath%\deps
 
-echo Downloading zlib...
-curl -fsSL -o zlib.tar.gz https://github.com/madler/zlib/archive/v1.2.8.tar.gz
-7z x zlib.tar.gz -so | 7z x -si -ttar > nul
-move zlib-1.2.8 zlib
-cd zlib
-cmake -A %CMakeOptA% .
-cmake --build . --config %build_config%
-cd ..
-
 echo Downloading libjpeg...
 rem curl -fsSL -o libjpeg.tar.gz https://github.com/libjpeg-turbo/libjpeg-turbo/archive/2.0.4.tar.gz
 curl -fsSL -o libjpeg.tar.gz https://github.com/norihiro/obs-vnc/releases/download/0.1.0/libjpeg-2.0.4-norihiro.tar.gz
@@ -58,7 +49,7 @@ curl -fsSL -o libpng.tar.gz http://prdownloads.sourceforge.net/libpng/libpng-1.6
 move libpng-1.6.28 libpng
 echo Building libpng...
 cd libpng
-cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%LIBVNCPath%\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib
+cmake . -A %CMakeOptA% -DZLIB_INCLUDE_DIR=%OBSDeps%\include -DZLIB_LIBRARY=%OBSDeps%\lib\zlib.lib
 cmake --build . --config %build_config%
 cd ..
 
@@ -95,9 +86,11 @@ cmake --version
 cmake ^
 -A %CMakeOptA% ^
 -DWITH_OPENSSL=%WITH_OPENSSL% ^
--DZLIB_INCLUDE_DIR=.\deps\zlib -DZLIB_LIBRARY=%LIBVNCPath%\deps\zlib\%build_config%\zlibstatic.lib ^
+-DZLIB_INCLUDE_DIR=%OBSDeps%\include -DZLIB_LIBRARY=%OBSDeps%\lib\zlib.lib ^
 -DLZO_INCLUDE_DIR=.\deps\lzo\include -DLZO_LIBRARIES=%LIBVNCPath%\deps\lzo\build\%build_config%\lzo2.lib ^
--DPNG_PNG_INCLUDE_DIR=.\deps\libpng -DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
+-DPNG_PNG_INCLUDE_DIR=%LIBVNCPath%\deps\libpng ^
+-DPNG_INCLUDE_DIR=%LIBVNCPath%\deps\libpng ^
+-DPNG_LIBRARY=%LIBVNCPath%\deps\libpng\%build_config%\libpng16_static.lib ^
 -DJPEG_INCLUDE_DIR=%LIBVNCPath%/deps/libjpeg -DJPEG_LIBRARY=./deps/libjpeg/%build_config%/turbojpeg-static ^
 -DWITH_SDL=OFF -DWITH_GTK=OFF -DWITH_SYSTEMD=OFF -DWITH_FFMPEG=OFF ^
 -D LIBVNCSERVER_INSTALL=OFF ^
