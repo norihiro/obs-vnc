@@ -34,10 +34,13 @@
 #define debug(fmt, ...) (void)0
 // #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
-static inline int max_int(int a, int b) { return (a<b) ? b : a; }
+static inline int max_int(int a, int b)
+{
+	return (a < b) ? b : a;
+}
 
 #ifdef LIBVNCSERVER_HAVE_SASL
-static char *vnc_username(rfbClient* client)
+static char *vnc_username(rfbClient *client)
 {
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
 
@@ -49,7 +52,7 @@ static char *vnc_username(rfbClient* client)
 }
 #endif // LIBVNCSERVER_HAVE_SASL
 
-static char *vnc_passwd(rfbClient* client)
+static char *vnc_passwd(rfbClient *client)
 {
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
 
@@ -62,7 +65,7 @@ static char *vnc_passwd(rfbClient* client)
 
 static void set_updateRect(struct vnc_source *src, rfbClient *client)
 {
-	if (client->width<=0 || client->height<=0) {
+	if (client->width <= 0 || client->height <= 0) {
 		debug("set_updateRect resetting updateRect: width=%d height=%d", client->width, client->height);
 		client->updateRect.x = -1;
 		client->updateRect.y = client->updateRect.w = client->updateRect.h = 0;
@@ -77,7 +80,7 @@ static void set_updateRect(struct vnc_source *src, rfbClient *client)
 	pthread_mutex_unlock(&src->config_mutex);
 }
 
-static rfbBool vnc_malloc_fb(rfbClient* client)
+static rfbBool vnc_malloc_fb(rfbClient *client)
 {
 	struct vnc_source *src = rfbClientGetClientData(client, vncsrc_thread_start);
 	if (!src)
@@ -94,14 +97,14 @@ static rfbBool vnc_malloc_fb(rfbClient* client)
 	BFREE_IF_NONNULL(src->fb_vnc);
 	src->frame.data[0] = bzalloc(src->frame.linesize[0] * client->height);
 	switch (src->config.bpp) {
-		case 8:
-			client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height);
-			break;
-		case 16:
-			client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height * 2);
-			break;
-		default:
-			client->frameBuffer = src->frame.data[0];
+	case 8:
+		client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height);
+		break;
+	case 16:
+		client->frameBuffer = src->fb_vnc = bzalloc(client->width * client->height * 2);
+		break;
+	default:
+		client->frameBuffer = src->frame.data[0];
 	}
 
 	return TRUE;
@@ -109,25 +112,29 @@ static rfbBool vnc_malloc_fb(rfbClient* client)
 
 static inline void copy_8bit(uint8_t *dst, int dst_ls, const uint8_t *src, int src_ls, int x0, int y0, int x1, int y1)
 {
-	for (int y=y0; y<y1; y++) for (int x=x0; x<x1; x++) {
-		uint32_t s = src[src_ls*y + x];
-		dst[dst_ls*y + x*4 + 0] = ((s>>6)&3) * 255 / 3;
-		dst[dst_ls*y + x*4 + 1] = ((s>>3)&7) * 255 / 7;
-		dst[dst_ls*y + x*4 + 2] = ((s>>0)&7) * 255 / 7;
+	for (int y = y0; y < y1; y++) {
+		for (int x = x0; x < x1; x++) {
+			uint32_t s = src[src_ls * y + x];
+			dst[dst_ls * y + x * 4 + 0] = ((s >> 6) & 3) * 255 / 3;
+			dst[dst_ls * y + x * 4 + 1] = ((s >> 3) & 7) * 255 / 7;
+			dst[dst_ls * y + x * 4 + 2] = ((s >> 0) & 7) * 255 / 7;
+		}
 	}
 }
 
 static inline void copy_16bit(uint8_t *dst, int dst_ls, const uint16_t *src, int src_ls, int x0, int y0, int x1, int y1)
 {
-	for (int y=y0; y<y1; y++) for (int x=x0; x<x1; x++) {
-		uint32_t s = src[src_ls*y + x];
-		dst[dst_ls*y + x*4 + 0] = ((s>>10)&31) * 255 / 31;
-		dst[dst_ls*y + x*4 + 1] = ((s>>5)&31) * 255 / 31;
-		dst[dst_ls*y + x*4 + 2] = ((s>>0)&31) * 255 / 31;
+	for (int y = y0; y < y1; y++) {
+		for (int x = x0; x < x1; x++) {
+			uint32_t s = src[src_ls * y + x];
+			dst[dst_ls * y + x * 4 + 0] = ((s >> 10) & 31) * 255 / 31;
+			dst[dst_ls * y + x * 4 + 1] = ((s >> 5) & 31) * 255 / 31;
+			dst[dst_ls * y + x * 4 + 2] = ((s >> 0) & 31) * 255 / 31;
+		}
 	}
 }
 
-static void vnc_update(rfbClient* client, int x, int y, int w, int h)
+static void vnc_update(rfbClient *client, int x, int y, int w, int h)
 {
 	debug("vnc_update x=%d y=%d w=%d h=%d\n", x, y, w, h);
 
@@ -135,10 +142,12 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 	if (!src)
 		return;
 
-	if (src->config.bpp==8 && src->frame.data[0] && src->fb_vnc)
-		copy_8bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
-	else if (src->config.bpp==16 && src->frame.data[0] && src->fb_vnc)
-		copy_16bit(src->frame.data[0], src->frame.linesize[0], src->fb_vnc, src->frame.width, x, y, x+w, y+h);
+	uint8_t *data0 = src->frame.data[0];
+	int ls0 = src->frame.linesize[0];
+	if (src->config.bpp == 8 && data0 && src->fb_vnc)
+		copy_8bit(data0, ls0, src->fb_vnc, src->frame.width, x, y, x + w, y + h);
+	else if (src->config.bpp == 16 && data0 && src->fb_vnc)
+		copy_16bit(data0, ls0, src->fb_vnc, src->frame.width, x, y, x + w, y + h);
 
 	if (!src->frame.timestamp)
 		src->frame.timestamp = os_gettime_ns();
@@ -147,15 +156,32 @@ static void vnc_update(rfbClient* client, int x, int y, int w, int h)
 static void set_encodings_to_client(rfbClient *client, const volatile struct vncsrc_conig *config)
 {
 	switch (config->encodings) {
-		case ve_tight: client->appData.encodingsString = "tight copyrect"; break;
-		case ve_zrle: client->appData.encodingsString = "zrle copyrect"; break;
-		case ve_ultra: client->appData.encodingsString = "ultra copyrect"; break;
-		case ve_hextile: client->appData.encodingsString = "hextile copyrect"; break;
-		case ve_zlib: client->appData.encodingsString = "zlib copyrect"; break;
-		case ve_corre: client->appData.encodingsString = "corre copyrect"; break;
-		case ve_rre: client->appData.encodingsString = "rre copyrect"; break;
-		case ve_raw: client->appData.encodingsString = "raw copyrect"; break;
-		default: client->appData.encodingsString = "tight zrle ultra copyrect hextile zlib corre rre raw";
+	case ve_tight:
+		client->appData.encodingsString = "tight copyrect";
+		break;
+	case ve_zrle:
+		client->appData.encodingsString = "zrle copyrect";
+		break;
+	case ve_ultra:
+		client->appData.encodingsString = "ultra copyrect";
+		break;
+	case ve_hextile:
+		client->appData.encodingsString = "hextile copyrect";
+		break;
+	case ve_zlib:
+		client->appData.encodingsString = "zlib copyrect";
+		break;
+	case ve_corre:
+		client->appData.encodingsString = "corre copyrect";
+		break;
+	case ve_rre:
+		client->appData.encodingsString = "rre copyrect";
+		break;
+	case ve_raw:
+		client->appData.encodingsString = "raw copyrect";
+		break;
+	default:
+		client->appData.encodingsString = "tight zrle ultra copyrect hextile zlib corre rre raw";
 	}
 	client->appData.compressLevel = config->compress;
 	client->appData.enableJPEG = config->jpeg;
@@ -165,18 +191,21 @@ static void set_encodings_to_client(rfbClient *client, const volatile struct vnc
 static inline rfbClient *rfbc_start(struct vnc_source *src)
 {
 	rfbClient *client;
-	if (src->config.bpp==8) {
+	if (src->config.bpp == 8) {
 		client = rfbGetClient(8, 1, 1);
 	}
-	else if (src->config.bpp==16) {
+	else if (src->config.bpp == 16) {
 		client = rfbGetClient(5, 3, 2);
 	}
 	else {
 		src->config.bpp = 32;
 		client = rfbGetClient(8, 3, 4);
-		client->format.redShift   = 16; client->format.redMax   = 255;
-		client->format.greenShift =  8; client->format.greenMax = 255;
-		client->format.blueShift  =  0; client->format.blueMax  = 255;
+		client->format.redShift = 16;
+		client->format.greenShift = 8;
+		client->format.blueShift = 0;
+		client->format.redMax = 255;
+		client->format.greenMax = 255;
+		client->format.blueMax = 255;
 	}
 	src->frame.format = VIDEO_FORMAT_BGRX;
 
@@ -210,13 +239,13 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 static inline bool rfbc_poll(struct vnc_source *src, rfbClient *client)
 {
 	int ret = WaitForMessage(client, 1000);
-	if (ret>0) {
+	if (ret > 0) {
 		if (!HandleRFBServerMessage(client)) {
 			blog(LOG_INFO, "HandleRFBServerMessage returns 0");
 			return 1;
 		}
 	}
-	else if (ret<0) {
+	else if (ret < 0) {
 		blog(LOG_INFO, "WaitForMessage returns %d", ret);
 		return 1;
 	}
@@ -231,7 +260,7 @@ struct vncsrc_keymouse_state_s
 
 static inline int vkey_native_to_rfb(int vkey, int modifiers)
 {
-	switch(vkey) {
+	switch (vkey) { /* clang-format off */
 #ifdef _WIN32
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 		case 0x08: return XK_BackSpace; // BACKSPACE key
@@ -422,11 +451,14 @@ static inline int vkey_native_to_rfb(int vkey, int modifiers)
 		//se 0x7F: return SDL_SCANCODE_POWER;
 
 #else // Linux
-		default: return vkey;
+	default:
+		return vkey;
 #endif
+			/* clang-format on */
 	}
 
 #ifdef __APPLE__
+	/* clang-format off */
 	if (modifiers & INTERACT_CONTROL_KEY) switch (vkey) {
 		case 0x00: return (modifiers & INTERACT_SHIFT_KEY) ? 'A' : 'a';
 		case 0x01: return (modifiers & INTERACT_SHIFT_KEY) ? 'S' : 's';
@@ -477,93 +509,105 @@ static inline int vkey_native_to_rfb(int vkey, int modifiers)
 		case 0x31: return ' ';
 		case 0x32: return '`'; // SDL_SCANCODE_GRAVE;
 	}
+		/* clang-format on */
 #endif // __APPLE__
 
 	return 0;
 };
 
-static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, struct vncsrc_keymouse_state_s *state, struct vncsrc_interaction_event_s *ie)
+static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, struct vncsrc_keymouse_state_s *state,
+				     struct vncsrc_interaction_event_s *ie)
 {
 	switch (ie->type) {
-		case mouse_click:
-		case mouse_click_up:
-			{
-				int m = 0;
-				switch(ie->button_type) {
-					case MOUSE_LEFT:   m = rfbButton1Mask; break;
-					case MOUSE_MIDDLE: m = rfbButton2Mask; break;
-					case MOUSE_RIGHT:  m = rfbButton3Mask; break;
-				}
-				if (ie->type==mouse_click)
-					state->buttonMask |= m;
-				else
-					state->buttonMask &= ~m;
-			}
-		case mouse_move:
+	case mouse_click:
+	case mouse_click_up: {
+		int m = 0;
+		switch (ie->button_type) {
+		case MOUSE_LEFT:
+			m = rfbButton1Mask;
+			break;
+		case MOUSE_MIDDLE:
+			m = rfbButton2Mask;
+			break;
+		case MOUSE_RIGHT:
+			m = rfbButton3Mask;
+			break;
+		}
+		if (ie->type == mouse_click)
+			state->buttonMask |= m;
+		else
+			state->buttonMask &= ~m;
+	}
+	case mouse_move:
+		SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
+		break;
+	case mouse_leave:
+		// TODO: SendKeyEvent if alt keys were down.
+		break;
+	case mouse_wheel:
+		debug("y_delta=%+d x_delta=%+d\n", ie->y_delta, ie->x_delta);
+		for (int i = 0; i < +ie->y_delta; i += WHEEL_STEP) {
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | rfbButton4Mask);
 			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
-			break;
-		case mouse_leave:
-			// TODO: SendKeyEvent if alt keys were down.
-			break;
-		case mouse_wheel:
-			debug("y_delta=%+d x_delta=%+d\n", ie->y_delta, ie->x_delta);
-			for (int i=0; i<+ie->y_delta; i+=WHEEL_STEP) {
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | rfbButton4Mask);
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
-			}
-			for (int i=0; i<-ie->y_delta; i+=WHEEL_STEP) {
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | rfbButton5Mask);
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
-			}
-			for (int i=0; i<+ie->x_delta; i+=WHEEL_STEP) {
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | 0b01000000);
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
-			}
-			for (int i=0; i<-ie->x_delta; i+=WHEEL_STEP) {
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | 0b00100000);
-				SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
-			}
-			break;
-		case key_click_up:
-		case key_click:
-			{
-				int key = *(char*)&ie->key.text;
-				debug("key=%02x mod=%0x sc=%0x vkey=%0x\n", key, ie->key.native_modifiers, ie->key.native_scancode, ie->key.native_vkey);
+		}
+		for (int i = 0; i < -ie->y_delta; i += WHEEL_STEP) {
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | rfbButton5Mask);
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
+		}
+		for (int i = 0; i < +ie->x_delta; i += WHEEL_STEP) {
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | 0b01000000);
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
+		}
+		for (int i = 0; i < -ie->x_delta; i += WHEEL_STEP) {
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask | 0b00100000);
+			SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
+		}
+		break;
+	case key_click_up:
+	case key_click: {
+		int key = *(char *)&ie->key.text;
+		debug("key=%02x mod=%0x sc=%0x vkey=%0x\n", key, ie->key.native_modifiers, ie->key.native_scancode,
+		      ie->key.native_vkey);
 
-				int vkey = vkey_native_to_rfb(ie->key.native_vkey, ie->key.modifiers);
-				debug("vkey_native_to_rfb(%x) returns %x\n", ie->key.native_vkey, vkey);
+		int vkey = vkey_native_to_rfb(ie->key.native_vkey, ie->key.modifiers);
+		debug("vkey_native_to_rfb(%x) returns %x\n", ie->key.native_vkey, vkey);
 #ifdef _WIN32
-				if (0x01<=key && key<0x1A && ie->key.modifiers & INTERACT_CONTROL_KEY)
-					key += (ie->key.modifiers & INTERACT_SHIFT_KEY) ? 0x40 : 0x60;
-				else if (0x1B<=key && key<0x1F && ie->key.modifiers & INTERACT_CONTROL_KEY)
-					key += 0x40;
-				else
+		if (0x01 <= key && key < 0x1A && ie->key.modifiers & INTERACT_CONTROL_KEY)
+			key += (ie->key.modifiers & INTERACT_SHIFT_KEY) ? 0x40 : 0x60;
+		else if (0x1B <= key && key < 0x1F && ie->key.modifiers & INTERACT_CONTROL_KEY)
+			key += 0x40;
+		else
 #endif // _WIN32
-				if (vkey) {
-					key = vkey;
-				}
+			if (vkey) {
+				key = vkey;
+			}
 
 #ifdef __APPLE__
-				int mm[][2] = {
-					{ INTERACT_CONTROL_KEY, XK_Control_L },
-					{ INTERACT_SHIFT_KEY,   XK_Shift_L   },
-					{ 0, 0 }
-				};
-				if (key) for (int i=0; mm[i][0]; i++) {
-					const int m = mm[i][0];
-					const int k = mm[i][1];
-					if (ie->key.modifiers & m && ~state->mod & m) {
-						state->mod |= m;
-						SendKeyEvent(client, k, TRUE);
-					}
-					else if (~ie->key.modifiers & m && state->mod & m) {
-						state->mod &= ~m;
-						SendKeyEvent(client, k, FALSE);
-					}
+		int mm[][2] = {
+			/* clang-format off */
+			{INTERACT_CONTROL_KEY, XK_Control_L},
+			{INTERACT_SHIFT_KEY, XK_Shift_L},
+			{0, 0}
+			/* clang-format on */
+		};
+		if (key)
+			for (int i = 0; mm[i][0]; i++) {
+				const int m = mm[i][0];
+				const int k = mm[i][1];
+				if (ie->key.modifiers & m && ~state->mod & m) {
+					state->mod |= m;
+					SendKeyEvent(client, k, TRUE);
 				}
+				else if (~ie->key.modifiers & m && state->mod & m) {
+					state->mod &= ~m;
+					SendKeyEvent(client, k, FALSE);
+				}
+			}
 #endif // __APPLE__
 
-				if (ie->key.modifiers & INTERACT_IS_KEY_PAD) switch (key) {
+		if (ie->key.modifiers & INTERACT_IS_KEY_PAD)
+			switch (key) {
+				/* clang-format off */
 					case '0': key = XK_KP_0; break;
 					case '1': key = XK_KP_1; break;
 					case '2': key = XK_KP_2; break;
@@ -580,14 +624,14 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 					case '-': key = XK_KP_Subtract; break;
 					case '+': key = XK_KP_Add; break;
 					case '=': key = XK_KP_Equal; break;
-				}
-
-				if (0x00 < key) {
-					debug("SendKeyEvent(key=%x, click=%d)\n", key, (int)(ie->type==key_click));
-					SendKeyEvent(client, key, ie->type==key_click ? TRUE : FALSE);
-				}
+				/* clang-format on */
 			}
-			break;
+
+		if (0x00 < key) {
+			debug("SendKeyEvent(key=%x, click=%d)\n", key, (int)(ie->type == key_click));
+			SendKeyEvent(client, key, ie->type == key_click ? TRUE : FALSE);
+		}
+	} break;
 	}
 }
 
@@ -678,7 +722,8 @@ static void *thread_main(void *data)
 				if (~display_flags & VNCSRC_FLG_SHOWN)
 					to_disconnect = true;
 			}
-			else if (src->config.connect_opt & (connect_at_active_disconnect_at_inactive & ~connect_at_active)) {
+			else if (src->config.connect_opt &
+				 (connect_at_active_disconnect_at_inactive & ~connect_at_active)) {
 				if (~display_flags & VNCSRC_FLG_ACTIVE)
 					to_disconnect = true;
 			}
@@ -700,14 +745,15 @@ static void *thread_main(void *data)
 			if (!pthread_mutex_trylock(&src->interact_mutex)) {
 				// discard interaction queue
 				while (src->interacts.size >= sizeof(struct vncsrc_interaction_event_s))
-					circlebuf_pop_front(&src->interacts, NULL, sizeof(struct vncsrc_interaction_event_s));
+					circlebuf_pop_front(&src->interacts, NULL,
+							    sizeof(struct vncsrc_interaction_event_s));
 				pthread_mutex_unlock(&src->interact_mutex);
 			}
 			if (!client) {
 				cnt_failure += 1;
-				n_wait = cnt_failure >= 6 ? 600 : (10<<cnt_failure);
-				if (cnt_failure<=6)
-					blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds", n_wait/10);
+				n_wait = cnt_failure >= 6 ? 600 : (10 << cnt_failure);
+				if (cnt_failure <= 6)
+					blog(LOG_WARNING, "rfbInitClient failed, will retry in %ds", n_wait / 10);
 				continue;
 			}
 			memset(&state, 0, sizeof(state));
@@ -729,9 +775,8 @@ static void *thread_main(void *data)
 			}
 			if (src->skip_updated) {
 				set_updateRect(src, client);
-				SendFramebufferUpdateRequest(client,
-						client->updateRect.x, client->updateRect.y,
-						client->updateRect.w, client->updateRect.h, 0);
+				SendFramebufferUpdateRequest(client, client->updateRect.x, client->updateRect.y,
+							     client->updateRect.w, client->updateRect.h, 0);
 			}
 			if (rfbc_poll(src, client)) {
 				rfbClientCleanup(client);
@@ -747,7 +792,7 @@ static void *thread_main(void *data)
 		rfbc_interact(src, client, &state);
 	}
 
-	if(client)
+	if (client)
 		rfbClientCleanup(client);
 	client = NULL;
 	return NULL;

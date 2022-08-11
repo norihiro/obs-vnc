@@ -6,8 +6,7 @@
 #include <util/circlebuf.h>
 #include <rfb/rfbconfig.h>
 
-enum vnc_encodings_e
-{
+enum vnc_encodings_e {
 	ve_tight = 1,
 	ve_zrle = 2,
 	ve_ultra = 4,
@@ -36,9 +35,9 @@ struct vncsrc_conig
 		connect_always = 0,
 		connect_at_shown = 1,
 		connect_at_active = 2,
-		connect_at_shown_disconnect_at_hidden = 1+4,
-		connect_at_active_disconnect_at_hidden = 2+4,
-		connect_at_active_disconnect_at_inactive = 2+8,
+		connect_at_shown_disconnect_at_hidden = 1 + 4,
+		connect_at_active_disconnect_at_hidden = 2 + 4,
+		connect_at_active_disconnect_at_inactive = 2 + 8,
 	} connect_opt;
 
 	int skip_update_l, skip_update_r, skip_update_t, skip_update_b;
@@ -59,7 +58,8 @@ struct vncsrc_interaction_event_s
 		// key
 		struct obs_key_event key;
 		// mouse_click, mouse_wheel
-		struct {
+		struct
+		{
 			int32_t mouse_x, mouse_y;
 			int32_t button_type;
 			int x_delta;
@@ -97,7 +97,11 @@ struct vnc_source
 void vncsrc_thread_start(struct vnc_source *src);
 void vncsrc_thread_stop(struct vnc_source *src);
 
-#define BFREE_IF_NONNULL(x) if (x) { bfree(x); (x) = NULL; }
+#define BFREE_IF_NONNULL(x) \
+	if (x) {            \
+		bfree(x);   \
+		(x) = NULL; \
+	}
 
 static inline void vncsrc_config_destroy_member(volatile struct vncsrc_conig *c)
 {

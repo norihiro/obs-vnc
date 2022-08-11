@@ -54,7 +54,14 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 
 	pthread_mutex_lock(&src->config_mutex);
 
-#define UPDATE_NOTIFY(src, t, n, u, v) { t x=(v); if (x!=src->config.n) { src->config.n=x; src->u=1; } }
+#define UPDATE_NOTIFY(src, t, n, u, v)     \
+	do {                               \
+		t x = (v);                 \
+		if (x != src->config.n) {  \
+			src->config.n = x; \
+			src->u = 1;        \
+		}                          \
+	} while (0)
 
 	const char *host_name = obs_data_get_string(settings, "host_name");
 	if (host_name && (!src->config.host_name || strcmp(host_name, src->config.host_name))) {
@@ -99,6 +106,8 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	UPDATE_NOTIFY(src, int, skip_update_b, skip_updated, obs_data_get_int(settings, "skip_update_b"));
 
 	pthread_mutex_unlock(&src->config_mutex);
+
+#undef UPDATE_NOTIFY
 }
 
 static void vncsrc_get_defaults(obs_data_t *settings)
@@ -126,11 +135,13 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_text(props, "user_name", obs_module_text("User name"), OBS_TEXT_DEFAULT);
 #endif // LIBVNCSERVER_HAVE_SASL
 
-	prop = obs_properties_add_list(props, "bpp", "Color level", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
+	prop = obs_properties_add_list(props, "bpp", obs_module_text("Color level"), OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
 	obs_property_list_add_int(prop, "24-bit", 32);
 	obs_property_list_add_int(prop, "16-bit", 16);
 	obs_property_list_add_int(prop, "8-bit", 8);
-	prop = obs_properties_add_list(props, "encodings", "Preferred encodings", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
+	prop = obs_properties_add_list(props, "encodings", obs_module_text("Preferred encodings"), OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
 	obs_property_list_add_int(prop, "Auto", -1);
 	obs_property_list_add_int(prop, "Tight", ve_tight);
 	obs_property_list_add_int(prop, "ZRLE", ve_zrle);
@@ -144,13 +155,17 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_properties_add_bool(props, "jpeg", obs_module_text("Enable JPEG"));
 	obs_properties_add_int(props, "quality", obs_module_text("Quality level for JPEG (0=poor, 9=best)"), 0, 9, 1);
 	obs_properties_add_int(props, "qosdscp", obs_module_text("QoS DSCP"), 0, 255, 1);
-	prop = obs_properties_add_list(props, "connect_opt", "Connection timing", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
-	obs_property_list_add_int(prop, "Always", connect_always);
-	obs_property_list_add_int(prop, "Connect at shown", connect_at_shown);
-	obs_property_list_add_int(prop, "Connect at shown, disconnect at hidden", connect_at_shown_disconnect_at_hidden);
-	obs_property_list_add_int(prop, "Connect at activated", connect_at_active);
-	obs_property_list_add_int(prop, "Connect at activated, disconnect at hidden", connect_at_active_disconnect_at_hidden);
-	obs_property_list_add_int(prop, "Connect at activated, disconnect at inactive", connect_at_active_disconnect_at_inactive);
+	prop = obs_properties_add_list(props, "connect_opt", obs_module_text("Connection timing"), OBS_COMBO_TYPE_LIST,
+				       OBS_COMBO_FORMAT_INT);
+	obs_property_list_add_int(prop, obs_module_text("Always"), connect_always);
+	obs_property_list_add_int(prop, obs_module_text("Connect at shown"), connect_at_shown);
+	obs_property_list_add_int(prop, obs_module_text("Connect at shown, disconnect at hidden"),
+				  connect_at_shown_disconnect_at_hidden);
+	obs_property_list_add_int(prop, obs_module_text("Connect at activated"), connect_at_active);
+	obs_property_list_add_int(prop, obs_module_text("Connect at activated, disconnect at hidden"),
+				  connect_at_active_disconnect_at_hidden);
+	obs_property_list_add_int(prop, obs_module_text("Connect at activated, disconnect at inactive"),
+				  connect_at_active_disconnect_at_inactive);
 
 	obs_properties_add_int(props, "skip_update_l", obs_module_text("Skip update (left)"), 0, 32767, 1);
 	obs_properties_add_int(props, "skip_update_r", obs_module_text("Skip update (right)"), 0, 32767, 1);
@@ -180,7 +195,7 @@ static void vncsrc_hide(void *data)
 {
 	struct vnc_source *src = data;
 	long f = os_atomic_load_long(&src->display_flags);
-	os_atomic_set_long(&src->display_flags, f &~VNCSRC_FLG_SHOWN);
+	os_atomic_set_long(&src->display_flags, f & ~VNCSRC_FLG_SHOWN);
 }
 
 static void vncsrc_activate(void *data)
@@ -194,14 +209,16 @@ static void vncsrc_deactivate(void *data)
 {
 	struct vnc_source *src = data;
 	long f = os_atomic_load_long(&src->display_flags);
-	os_atomic_set_long(&src->display_flags, f &~VNCSRC_FLG_ACTIVE);
+	os_atomic_set_long(&src->display_flags, f & ~VNCSRC_FLG_ACTIVE);
 }
 
-static void vncsrc_mouse_click(void *data, const struct obs_mouse_event *event, int32_t type, bool mouse_up, uint32_t click_count)
+static void vncsrc_mouse_click(void *data, const struct obs_mouse_event *event, int32_t type, bool up, uint32_t count)
 {
+	UNUSED_PARAMETER(count);
+
 	struct vnc_source *src = data;
 	struct vncsrc_interaction_event_s interact = {
-		.type = mouse_up ? mouse_click_up : mouse_click,
+		.type = up ? mouse_click_up : mouse_click,
 		.mouse_x = event->x,
 		.mouse_y = event->y,
 		.button_type = type,
@@ -240,7 +257,7 @@ static void vncsrc_key_click(void *data, const struct obs_key_event *event, bool
 		.type = key_up ? key_click_up : key_click,
 		.key = *event,
 	};
-	strncpy((char*)&interact.key.text, interact.key.text, sizeof(char*));
+	strncpy((char *)&interact.key.text, interact.key.text, sizeof(char *));
 	queue_interaction(src, &interact);
 }
 
