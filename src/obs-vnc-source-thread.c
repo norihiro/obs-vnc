@@ -578,9 +578,9 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 			key += 0x40;
 		else
 #endif // _WIN32
-			if (vkey) {
-				key = vkey;
-			}
+		if (vkey) {
+			key = vkey;
+		}
 
 #ifdef __APPLE__
 		int mm[][2] = {
