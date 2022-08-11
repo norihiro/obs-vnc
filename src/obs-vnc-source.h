@@ -1,8 +1,8 @@
 #ifndef OBS_VNC_SOURCE_H
 #define OBS_VNC_SOURCE_H
 
-#include <pthread.h>
 #include <obs.h>
+#include <util/threading.h>
 #include <util/circlebuf.h>
 #include <rfb/rfbconfig.h>
 
