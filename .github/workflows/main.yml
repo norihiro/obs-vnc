@@ -271,8 +271,8 @@ jobs:
           obs: ${{ matrix.obs }}
 
       - name: Build libvncserver
-        shell: cmd
-        run: ci/windows/install-libvncserver.cmd
+        shell: bash
+        run: ci/windows/install-libvncserver.sh
         env:
           CMakeOptA: x64
           build_config: RelWithDebInfo
