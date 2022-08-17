@@ -78,10 +78,14 @@ if(OS_MACOS)
 
 	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
 
-	configure_file(installer/installer-macOS.pkgproj.in installer-macOS.generated.pkgproj)
-
 	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
 	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
+
+	set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
+	set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
+	set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
 endif()
 
 setup_plugin_target(${CMAKE_PROJECT_NAME})
+
+configure_file(installer/installer-macOS.pkgproj.in installer-macOS.generated.pkgproj)
