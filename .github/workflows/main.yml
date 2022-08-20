@@ -16,6 +16,7 @@ on:
 
 env:
   artifactName: ${{ contains(github.ref_name, '/') && 'artifact' || github.ref_name }}
+  qt: false
 
 jobs:
   linux_build:
@@ -40,6 +41,7 @@ jobs:
         with:
           obs: ${{ matrix.obs }}
           verbose: true
+          qt: ${{ env.qt }}
 
       - name: Build plugin
         run: |
@@ -156,6 +158,7 @@ jobs:
           arch: ${{ matrix.arch }}
           obs: ${{ matrix.obs }}
           verbose: true
+          qt: ${{ env.qt }}
 
       - name: Install libvncserver
         run: |
@@ -301,6 +304,7 @@ jobs:
         uses: norihiro/obs-studio-devel-action@v1-beta
         with:
           obs: ${{ matrix.obs }}
+          qt: ${{ env.qt }}
 
       - name: Build libvncserver
         shell: bash
