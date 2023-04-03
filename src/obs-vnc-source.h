@@ -56,7 +56,12 @@ struct vncsrc_interaction_event_s
 	} type;
 	union {
 		// key
-		struct obs_key_event key;
+		struct
+		{
+			uint32_t modifiers;
+			char text[8];
+			uint32_t native_vkey;
+		};
 		// mouse_click, mouse_wheel
 		struct
 		{
