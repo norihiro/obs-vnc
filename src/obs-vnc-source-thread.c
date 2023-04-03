@@ -236,7 +236,7 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 	return client;
 }
 
-static inline bool rfbc_poll(struct vnc_source *src, rfbClient *client)
+static inline bool rfbc_poll(rfbClient *client)
 {
 	int ret = WaitForMessage(client, 1000);
 	if (ret > 0) {
@@ -260,6 +260,8 @@ struct vncsrc_keymouse_state_s
 
 static inline int vkey_native_to_rfb(int vkey, int modifiers)
 {
+	UNUSED_PARAMETER(modifiers);
+
 	switch (vkey) { /* clang-format off */
 #ifdef _WIN32
 		// https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
@@ -515,7 +517,7 @@ static inline int vkey_native_to_rfb(int vkey, int modifiers)
 	return 0;
 };
 
-static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, struct vncsrc_keymouse_state_s *state,
+static inline void rfbc_interact_one(rfbClient *client, struct vncsrc_keymouse_state_s *state,
 				     struct vncsrc_interaction_event_s *ie)
 {
 	switch (ie->type) {
@@ -538,6 +540,9 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 		else
 			state->buttonMask &= ~m;
 	}
+#ifdef __GNUC__
+		__attribute__((fallthrough));
+#endif
 	case mouse_move:
 		SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
 		break;
@@ -565,16 +570,15 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 		break;
 	case key_click_up:
 	case key_click: {
-		int key = *(char *)&ie->key.text;
-		debug("key=%02x mod=%0x sc=%0x vkey=%0x\n", key, ie->key.native_modifiers, ie->key.native_scancode,
-		      ie->key.native_vkey);
+		int key = ie->text[0];
+		debug("key=%02x vkey=%0x\n", key, ie->native_vkey);
 
-		int vkey = vkey_native_to_rfb(ie->key.native_vkey, ie->key.modifiers);
-		debug("vkey_native_to_rfb(%x) returns %x\n", ie->key.native_vkey, vkey);
+		int vkey = vkey_native_to_rfb(ie->native_vkey, ie->modifiers);
+		debug("vkey_native_to_rfb(%x) returns %x\n", ie->native_vkey, vkey);
 #ifdef _WIN32
-		if (0x01 <= key && key < 0x1A && ie->key.modifiers & INTERACT_CONTROL_KEY)
-			key += (ie->key.modifiers & INTERACT_SHIFT_KEY) ? 0x40 : 0x60;
-		else if (0x1B <= key && key < 0x1F && ie->key.modifiers & INTERACT_CONTROL_KEY)
+		if (0x01 <= key && key < 0x1A && ie->modifiers & INTERACT_CONTROL_KEY)
+			key += (ie->modifiers & INTERACT_SHIFT_KEY) ? 0x40 : 0x60;
+		else if (0x1B <= key && key < 0x1F && ie->modifiers & INTERACT_CONTROL_KEY)
 			key += 0x40;
 		else /* clang-format off */
 #endif // _WIN32
@@ -594,18 +598,18 @@ static inline void rfbc_interact_one(struct vnc_source *src, rfbClient *client, 
 			for (int i = 0; mm[i][0]; i++) {
 				const int m = mm[i][0];
 				const int k = mm[i][1];
-				if (ie->key.modifiers & m && ~state->mod & m) {
+				if (ie->modifiers & m && ~state->mod & m) {
 					state->mod |= m;
 					SendKeyEvent(client, k, TRUE);
 				}
-				else if (~ie->key.modifiers & m && state->mod & m) {
+				else if (~ie->modifiers & m && state->mod & m) {
 					state->mod &= ~m;
 					SendKeyEvent(client, k, FALSE);
 				}
 			}
 #endif // __APPLE__
 
-		if (ie->key.modifiers & INTERACT_IS_KEY_PAD)
+		if (ie->modifiers & INTERACT_IS_KEY_PAD)
 			switch (key) {
 				/* clang-format off */
 					case '0': key = XK_KP_0; break;
@@ -656,7 +660,7 @@ static inline void rfbc_interact(struct vnc_source *src, rfbClient *client, stru
 		debug("received interaction event: type=%d\n", ie.type);
 
 		if (client)
-			rfbc_interact_one(src, client, state, &ie);
+			rfbc_interact_one(client, state, &ie);
 
 	} while (cont);
 }
@@ -778,7 +782,7 @@ static void *thread_main(void *data)
 				SendFramebufferUpdateRequest(client, client->updateRect.x, client->updateRect.y,
 							     client->updateRect.w, client->updateRect.h, 0);
 			}
-			if (rfbc_poll(src, client)) {
+			if (rfbc_poll(client)) {
 				rfbClientCleanup(client);
 				client = NULL;
 			}

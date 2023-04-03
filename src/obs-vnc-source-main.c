@@ -255,9 +255,10 @@ static void vncsrc_key_click(void *data, const struct obs_key_event *event, bool
 	struct vnc_source *src = data;
 	struct vncsrc_interaction_event_s interact = {
 		.type = key_up ? key_click_up : key_click,
-		.key = *event,
+		.modifiers = event->modifiers,
+		.native_vkey = event->native_vkey,
 	};
-	strncpy((char *)&interact.key.text, interact.key.text, sizeof(char *));
+	strncpy(interact.text, event->text, sizeof(interact.text) - 1);
 	queue_interaction(src, &interact);
 }
 
