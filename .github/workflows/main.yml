@@ -173,6 +173,10 @@ jobs:
           export deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
           ci/macos/build-libvncserver.sh
 
+      - name: tmate
+        if: always()
+        uses: mxschmitt/action-tmate@v3
+
       - name: Build plugin
         run: |
           arch=${{ matrix.arch }}
