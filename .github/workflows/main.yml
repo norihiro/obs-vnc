@@ -160,11 +160,18 @@ jobs:
           verbose: true
           qt: ${{ env.qt }}
 
-      - name: Install libvncserver
+      - name: Generate dependency libraries from the bottle
+        uses: norihiro/obs-plugin-macos-lib-action@v1-beta
+        with:
+          packages: |
+            gmp
+            nettle
+
+      - name: Build libvncserver
         run: |
           export arch=${{ matrix.arch }}
           export deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
-          ci/macos/install-libvncserver-${{ matrix.arch }}.sh
+          ci/macos/build-libvncserver.sh
 
       - name: Build plugin
         run: |
