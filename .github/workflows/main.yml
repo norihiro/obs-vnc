@@ -102,7 +102,9 @@ jobs:
       matrix:
         include:
           - obs: 28
-            arch: universal
+            arch: x86_64
+          - obs: 28
+            arch: arm64
     defaults:
       run:
         shell: bash
@@ -163,7 +165,6 @@ jobs:
       - name: Install libvncserver
         run: |
           export arch=${{ matrix.arch }}
-          export deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
           ci/macos/install-libvncserver-${{ matrix.arch }}.sh
 
       - name: Build plugin
@@ -174,7 +175,9 @@ jobs:
           OBS_QT_VERSION_MAJOR=${{ steps.obsdeps.outputs.OBS_QT_VERSION_MAJOR }}
           GIT_TAG=$(git describe --tags --always)
           PKG_SUFFIX=-${GIT_TAG}-obs${{ matrix.obs }}-macos-${{ matrix.arch }}
-          export PKG_CONFIG_PATH=$deps/lib/pkgconfig:/usr/local/lib/pkgconfig/:$PKG_CONFIG_PATH # for arm64
+          if test "$arch" = 'arm64'; then
+            export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
+          fi
           set -e
           case "${{ matrix.obs }}" in
             27)
@@ -204,13 +207,10 @@ jobs:
           . ci/ci_includes.generated.sh
           cmake --install build --config RelWithDebInfo --prefix=release
           case ${{ matrix.obs }} in
-            27)
-              (cd release/${PLUGIN_NAME} && ../../ci/macos/change-rpath.sh -obs ${{ matrix.obs }} -lib lib/ bin/${PLUGIN_NAME}.so)
-              cp LICENSE release/${PLUGIN_NAME}/data/LICENSE-$PLUGIN_NAME
-              ;;
             28)
               (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh -obs 28 -lib lib/ MacOS/${PLUGIN_NAME})
               cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/LICENSE-$PLUGIN_NAME
+              ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
               ;;
           esac
 
