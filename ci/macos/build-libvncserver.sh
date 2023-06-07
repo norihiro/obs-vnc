@@ -3,6 +3,7 @@
 set -ex
 
 brew install pkg-config
+brew uninstall --ignore-dependencies lzo libpng jpeg-turbo
 
 mkdir deps
 
@@ -50,6 +51,8 @@ curl -L -o deps/gnutls.tar.xz https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutl
 mkdir deps/gnutls
 tar xJf deps/gnutls.tar.xz -C deps/gnutls --strip-components 1
 
+PATH=$PWD/ci/macos/gcc-aarch64-wrapper:$PATH
+
 for a in arm64 x86_64; do
 	mkdir deps/gnutls/build-$a
 	pushd deps/gnutls/build-$a
@@ -74,12 +77,12 @@ for a in arm64 x86_64; do
 	popd
 done
 
-
 ##############################################################################################################
 
 git clone https://github.com/LibVNC/libvncserver.git deps/libvncserver
 pushd deps/libvncserver
-git checkout $(git describe --tags --exclude="*-rc*" --abbrev=0)
+git fetch --tags
+git checkout LibVNCServer-0.9.14
 cmake \
 	'-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64' \
 	-DWITH_OPENSSL=ON \
@@ -88,6 +91,6 @@ cmake \
 	-DWITH_TIGHTVNC_FILETRANSFER=OFF \
 	-DWITH_EXAMPLES=OFF \
 	-B build
-cmake --build . --config $build_config
+cmake --build build --config Release
 
 test -f "$GITHUB_OUTPUT" && echo 'success=true' >> $GITHUB_OUTPUT

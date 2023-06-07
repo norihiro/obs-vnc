@@ -1,0 +1,2 @@
+#! /bin/bash
+exec /usr/bin/llvm-gcc -target arm64-apple-macos11 "$@"
