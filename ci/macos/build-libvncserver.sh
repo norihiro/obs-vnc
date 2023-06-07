@@ -13,6 +13,7 @@ tar -xzf deps/lzo.tar.gz -C deps/lzo/ --strip-components 1
 pushd deps/lzo
 cmake '-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64' -B build
 cmake --build build
+cmake --install build
 popd
 file deps/lzo/build/liblzo2.a
 cat deps/lzo/build/lzo2.pc
@@ -24,6 +25,7 @@ tar -xzf deps/libjpeg.tar.gz -C deps/libjpeg --strip-components 1
 pushd deps/libjpeg
 cmake '-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64' -B build -DENABLE_SHARED=OFF
 cmake --build build
+cmake --install build
 popd
 file deps/libjpeg/build/lib*jpeg.a
 
@@ -38,5 +40,19 @@ cmake '-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64' -B build \
 	-DCMAKE_ASM_FLAGS='-DPNG_ARM_NEON_IMPLEMENTATION=1' -DPNG_ARM_NEON=on
 mkdir -p build/arm64
 cmake --build build
+cmake --install build
 popd
 file deps/libpng/build/libpng16.a
+
+git clone https://github.com/LibVNC/libvncserver.git deps/libvncserver
+pushd deps/libvncserver
+git checkout $(git describe --tags --exclude="*-rc*" --abbrev=0)
+cmake \
+	'-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64' \
+	-DWITH_OPENSSL=ON \
+	-DWITH_SDL=OFF -DWITH_GTK=OFF -DWITH_SYSTEMD=OFF -DWITH_FFMPEG=OFF \
+	-DLIBVNCSERVER_INSTALL=OFF \
+	-DWITH_TIGHTVNC_FILETRANSFER=OFF \
+	-DWITH_EXAMPLES=OFF \
+	-B build
+cmake --build . --config $build_config
