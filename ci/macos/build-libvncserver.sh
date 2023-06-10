@@ -60,16 +60,18 @@ for a in arm64 x86_64; do
 		arm64)
 			config_opts=(
 				--host aarch64-apple-darwin20
-				--prefix=/tmp/deps/arm64
-				CFLAGS=-I/tmp/deps/arm64/include
-				LDFLAGS=-L/tmp/deps/arm64/lib
+				--prefix=$arm64_prefix
+				CFLAGS=-I${arm64_prefix}/include
+				LDFLAGS=-L${arm64_prefix}/lib
 			)
+			PKG_CONFIG_PATH_arch=${arm64_prefix}/lib/pkgconfig
 			;;
 		x86_64)
 			config_opts=()
+			PKG_CONFIG_PATH_arch=''
 			;;
 	esac
-	PKG_CONFIG_PATH=/tmp/deps/$a/lib/pkgconfig: \
+	PKG_CONFIG_PATH=${PKG_CONFIG_PATH_arch}: \
 		../configure "${config_opts[@]}" \
 		--disable-shared \
 		--enable-static

@@ -106,6 +106,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      arm64_prefix: /Users/runner/work/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -166,7 +168,7 @@ jobs:
           packages: |
             gmp
             nettle
-          arm64_prefix_directory: /tmp/deps/arm64
+          arm64_prefix_directory: ${{env.arm64_prefix}}
           output_directory: /tmp/universal-lib
 
       - name: Build libvncserver
