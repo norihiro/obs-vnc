@@ -53,9 +53,13 @@ tar xJf deps/gnutls.tar.xz -C deps/gnutls --strip-components 1
 
 PATH=$PWD/ci/macos/gcc-aarch64-wrapper:$PATH
 
+pushd deps/gnutls
+sed -i -e 's;-Wa,-march=all;-Wa,-mcpu=apple-m1;g' lib/accelerated/aarch64/Makefile.{am,in}
+patch -p1 < ../../ci/macos/gnutls-rm-bin.patch
+
 for a in arm64 x86_64; do
-	mkdir deps/gnutls/build-$a
-	pushd deps/gnutls/build-$a
+	mkdir build-$a
+	pushd build-$a
 	case "$a" in
 		arm64)
 			config_opts=(
@@ -74,10 +78,12 @@ for a in arm64 x86_64; do
 	PKG_CONFIG_PATH=${PKG_CONFIG_PATH_arch}: \
 		../configure "${config_opts[@]}" \
 		--disable-shared \
-		--enable-static
+		--enable-static \
+		--with-included-unistring
 	make -j4
 	popd
 done
+popd
 
 ##############################################################################################################
 

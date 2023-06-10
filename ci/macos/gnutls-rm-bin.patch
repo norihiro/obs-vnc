@@ -1,0 +1,27 @@
+Common subdirectories: gnutls-orig/src/gl and gnutls/src/gl
+Common subdirectories: gnutls-orig/src/libopts and gnutls/src/libopts
+diff -u gnutls-orig/src/Makefile.am gnutls/src/Makefile.am
+--- gnutls-orig/src/Makefile.am	2021-05-22 00:05:56.000000000 +0900
++++ gnutls/src/Makefile.am	2023-06-10 15:54:06.075104943 +0900
+@@ -82,7 +82,7 @@
+ LIBOPTS = $(LIBOPTS_LDADD)
+ endif
+ 
+-bin_PROGRAMS = psktool gnutls-cli-debug certtool gnutls-serv gnutls-cli
++bin_PROGRAMS =
+ if ENABLE_SRP
+ bin_PROGRAMS += srptool
+ endif
+diff -u gnutls-orig/src/Makefile.in gnutls/src/Makefile.in
+--- gnutls-orig/src/Makefile.in	2021-05-24 17:05:51.000000000 +0900
++++ gnutls/src/Makefile.in	2023-06-10 15:53:55.505289944 +0900
+@@ -109,8 +109,7 @@
+ host_triplet = @host@
+ @NEED_LIBOPTS_TRUE@am__append_1 = libopts
+ @NEED_LIBOPTS_TRUE@am__append_2 = -I$(srcdir)/libopts
+-bin_PROGRAMS = psktool$(EXEEXT) gnutls-cli-debug$(EXEEXT) \
+-	certtool$(EXEEXT) gnutls-serv$(EXEEXT) gnutls-cli$(EXEEXT) \
++bin_PROGRAMS = \
+ 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
+ 	$(am__EXEEXT_4) $(am__EXEEXT_5)
+ @ENABLE_SRP_TRUE@am__append_3 = srptool
