@@ -541,7 +541,7 @@ static inline void rfbc_interact_one(rfbClient *client, struct vncsrc_keymouse_s
 			state->buttonMask &= ~m;
 	}
 #ifdef __GNUC__
-     __attribute__((fallthrough));
+		__attribute__((fallthrough));
 #endif
 	case mouse_move:
 		SendPointerEvent(client, ie->mouse_x, ie->mouse_y, state->buttonMask);
