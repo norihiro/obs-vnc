@@ -166,6 +166,8 @@ jobs:
           packages: |
             gmp
             nettle
+          arm64_prefix_directory: /tmp/deps/arm64
+          output_directory: /tmp/universal-lib
 
       - name: Build libvncserver
         run: |
