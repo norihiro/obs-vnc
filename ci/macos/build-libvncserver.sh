@@ -79,7 +79,10 @@ for a in arm64 x86_64; do
 		../configure "${config_opts[@]}" \
 		--disable-shared \
 		--enable-static \
-		--with-included-unistring
+		--with-included-unistring \
+		--disable-tools \
+		--disable-tests \
+		--disable-doc
 	make -j4
 	popd
 done
