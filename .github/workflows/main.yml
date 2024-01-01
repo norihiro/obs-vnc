@@ -306,12 +306,27 @@ jobs:
           obs: ${{ matrix.obs }}
           qt: ${{ env.qt }}
 
+      - name: Restore libvncserver cache
+        id: libvncserver-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ env.LIBVNCPath }}
+          key: libvncserver-${{ hashFiles('ci/windows/install-libvncserver.sh') }}
+
       - name: Build libvncserver
+        if: steps.libvncserver-cache.outputs.cache-hit != 'true'
         shell: bash
         run: ci/windows/install-libvncserver.sh
         env:
           CMakeOptA: x64
           build_config: RelWithDebInfo
+
+      - name: Cache libvncserver
+        if: steps.libvncserver-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ${{ env.LIBVNCPath }}
+          key: libvncserver-${{ hashFiles('ci/windows/install-libvncserver.sh') }}
 
       - name: Build plugin
         run: |
