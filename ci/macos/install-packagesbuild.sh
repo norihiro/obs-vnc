@@ -7,7 +7,7 @@ if which packagesbuild; then
 fi
 
 packages_url='http://s.sudre.free.fr/Software/files/Packages.dmg'
-packages_hash='6afdd25386295974dad8f078b8f1e41cabebd08e72d970bf92f707c7e48b16c9'
+packages_hash='9d9a73a64317ea6697a380014d2e5c8c8188b59d5fb8ce8872e56cec06cd78e8'
 
 for ((retry=5; retry>0; retry--)); do
 	curl -o Packages.dmg $packages_url
@@ -17,5 +17,5 @@ done
 hdiutil attach -noverify Packages.dmg
 packages_volume="$(hdiutil info -plist | grep '<string>/Volumes/Packages' | sed 's/.*<string>\(\/Volumes\/[^<]*\)<\/string>/\1/')"
 
-sudo installer -pkg "${packages_volume}/packages/Packages.pkg" -target /
+sudo installer -pkg "${packages_volume}/Install Packages.pkg" -target /
 hdiutil detach "${packages_volume}"
