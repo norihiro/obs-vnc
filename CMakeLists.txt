@@ -84,6 +84,15 @@ if(OS_WINDOWS)
 	endif()
 
 	target_link_libraries(${CMAKE_PROJECT_NAME} OBS::w32-pthreads)
+
+	# Workaround to link OpenSSL library required by vncclient
+	set(OPENSSL_USE_STATIC_LIBS ON)
+	find_package(OpenSSL)
+	if(OPENSSL_FOUND)
+		# `crypt32` is required according to a description [1].
+		# - [1] https://github.com/microsoft/vcpkg/pull/6309
+		target_link_libraries(${CMAKE_PROJECT_NAME} ${OPENSSL_LIBRARIES} crypt32)
+	endif()
 endif()
 
 if(OS_LINUX)
