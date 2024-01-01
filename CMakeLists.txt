@@ -18,12 +18,14 @@ find_package(libobs REQUIRED)
 include(cmake/ObsPluginHelpers.cmake)
 
 # Linux and macOS; use pkg-config to find libvncclient
-if(UNIX)
-	find_package(PkgConfig)
-	pkg_check_modules(LIBVNCCLIENT REQUIRED libvncclient)
+find_package(PkgConfig)
+if(PKG_CONFIG_FOUND)
+	pkg_search_module(LIBVNCCLIENT libvncclient)
 endif()
 
-if(OS_MACOS OR OS_WINDOWS)
+if(LIBVNCCLIENT_FOUND)
+	link_directories(${LIBVNCCLIENT_LIBRARY_DIRS})
+else()
 	link_directories(${LIBVNCCLIENT_STATIC_LIBRARY_DIRS})
 endif()
 
@@ -62,6 +64,14 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 	OBS::libobs
 )
 
+if(LIBVNCCLIENT_FOUND)
+	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
+	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_LIBRARIES})
+else()
+	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
+	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
+endif()
+
 if(OS_WINDOWS)
 	# Enable Multicore Builds and disable FH4 (to not depend on VCRUNTIME140_1.DLL when building with VS2019)
 	if (MSVC)
@@ -70,24 +80,17 @@ if(OS_WINDOWS)
 	endif()
 
 	target_link_libraries(${CMAKE_PROJECT_NAME} OBS::w32-pthreads)
-
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
 endif()
 
 if(OS_LINUX)
 	target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g -Wall -Wextra)
 	target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--no-undefined)
-	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_LIBRARIES})
 endif()
 
 if(OS_MACOS)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fvisibility=default")
 
 	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
-
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
 
 	set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
 	set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
