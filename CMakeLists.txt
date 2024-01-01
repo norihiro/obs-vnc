@@ -18,9 +18,13 @@ find_package(libobs REQUIRED)
 include(cmake/ObsPluginHelpers.cmake)
 
 # Linux and macOS; use pkg-config to find libvncclient
-find_package(PkgConfig)
-if(PKG_CONFIG_FOUND)
-	pkg_search_module(LIBVNCCLIENT libvncclient)
+option(USE_PKG_CONFIG "Use pkg-config to find libvncclient" ON)
+
+if(USE_PKG_CONFIG)
+	find_package(PkgConfig)
+	if(PKG_CONFIG_FOUND)
+		pkg_search_module(LIBVNCCLIENT libvncclient)
+	endif()
 endif()
 
 if(LIBVNCCLIENT_FOUND)
