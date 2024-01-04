@@ -198,8 +198,13 @@ jobs:
           cmake --install build --config RelWithDebInfo --prefix=release
           case ${{ matrix.obs }} in
             28)
-              (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh -obs 28 -lib lib/ MacOS/${PLUGIN_NAME})
-              cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/LICENSE-$PLUGIN_NAME
+              (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh \
+                -obs 28 \
+                -lib lib/ \
+                -license Resources/ \
+                MacOS/${PLUGIN_NAME}
+              )
+              cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
               ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
               ;;
           esac

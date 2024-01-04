@@ -2,6 +2,7 @@
 
 libdir=''
 obsver=''
+licdir=''
 
 while (($# > 0)); do
 	case "$1" in
@@ -10,6 +11,9 @@ while (($# > 0)); do
 			shift 2;;
 		-obs)
 			obsver="$2"
+			shift 2;;
+		-license)
+			licdir="$2"
 			shift 2;;
 		*)
 			break ;;
@@ -35,6 +39,19 @@ function copy_local_dylib
 			copy_local_dylib $libdir/$b
 		fi
 		install_name_tool -change "$dylib" "@loader_path/../$libdir/$b" $1
+
+		if test -n "$licdir"; then
+			find "$(cd "$(dirname "$dylib")/.." && pwd -P)" |
+			awk -v licdir="$licdir" -v FS='/' '
+			/(COPYING|LICENSE)(\.md|\.txt)?$/ {
+				for (i=1; i<NF; i++) {
+					if ($i ~ /^[a-zA-Z]/)
+						name = $i
+				}
+				system("cp "$0" "licdir"/"name"-"$NF)
+			}
+			'
+		fi
 	done
 	rm -f "$t"
 }
