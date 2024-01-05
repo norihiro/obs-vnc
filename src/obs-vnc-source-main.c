@@ -70,7 +70,7 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		src->need_reconnect = true;
 	}
 
-	UPDATE_NOTIFY(src, int, host_port, need_reconnect, obs_data_get_int(settings, "host_port"));
+	UPDATE_NOTIFY(src, int, host_port, need_reconnect, (int)obs_data_get_int(settings, "host_port"));
 
 	const char *plain_passwd = obs_data_get_string(settings, "plain_passwd");
 	if (plain_passwd && (!src->config.plain_passwd || strcmp(plain_passwd, src->config.plain_passwd))) {
@@ -92,18 +92,18 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	}
 #endif // LIBVNCSERVER_HAVE_SASL
 
-	UPDATE_NOTIFY(src, int, bpp, need_reconnect, obs_data_get_int(settings, "bpp"));
-	UPDATE_NOTIFY(src, int, encodings, encoding_updated, obs_data_get_int(settings, "encodings"));
-	UPDATE_NOTIFY(src, int, compress, encoding_updated, obs_data_get_int(settings, "compress"));
+	UPDATE_NOTIFY(src, int, bpp, need_reconnect, (int)obs_data_get_int(settings, "bpp"));
+	UPDATE_NOTIFY(src, int, encodings, encoding_updated, (int)obs_data_get_int(settings, "encodings"));
+	UPDATE_NOTIFY(src, int, compress, encoding_updated, (int)obs_data_get_int(settings, "compress"));
 	UPDATE_NOTIFY(src, bool, jpeg, encoding_updated, obs_data_get_bool(settings, "jpeg"));
-	UPDATE_NOTIFY(src, int, quality, encoding_updated, obs_data_get_int(settings, "quality"));
-	UPDATE_NOTIFY(src, int, qosdscp, dscp_updated, obs_data_get_int(settings, "qosdscp"));
-	src->config.connect_opt = obs_data_get_int(settings, "connect_opt");
+	UPDATE_NOTIFY(src, int, quality, encoding_updated, (int)obs_data_get_int(settings, "quality"));
+	UPDATE_NOTIFY(src, int, qosdscp, dscp_updated, (int)obs_data_get_int(settings, "qosdscp"));
+	src->config.connect_opt = (int)obs_data_get_int(settings, "connect_opt");
 
-	UPDATE_NOTIFY(src, int, skip_update_l, skip_updated, obs_data_get_int(settings, "skip_update_l"));
-	UPDATE_NOTIFY(src, int, skip_update_r, skip_updated, obs_data_get_int(settings, "skip_update_r"));
-	UPDATE_NOTIFY(src, int, skip_update_t, skip_updated, obs_data_get_int(settings, "skip_update_t"));
-	UPDATE_NOTIFY(src, int, skip_update_b, skip_updated, obs_data_get_int(settings, "skip_update_b"));
+	UPDATE_NOTIFY(src, int, skip_update_l, skip_updated, (int)obs_data_get_int(settings, "skip_update_l"));
+	UPDATE_NOTIFY(src, int, skip_update_r, skip_updated, (int)obs_data_get_int(settings, "skip_update_r"));
+	UPDATE_NOTIFY(src, int, skip_update_t, skip_updated, (int)obs_data_get_int(settings, "skip_update_t"));
+	UPDATE_NOTIFY(src, int, skip_update_b, skip_updated, (int)obs_data_get_int(settings, "skip_update_b"));
 
 	pthread_mutex_unlock(&src->config_mutex);
 

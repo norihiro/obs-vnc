@@ -12,7 +12,10 @@
 #endif
 #include <errno.h>
 
+#ifndef WIN32
 #define WIN32
+#endif
+
 #endif // _WIN32
 
 #include <rfb/rfbclient.h>

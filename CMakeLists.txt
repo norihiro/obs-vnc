@@ -80,6 +80,7 @@ if(OS_WINDOWS)
 	# Enable Multicore Builds and disable FH4 (to not depend on VCRUNTIME140_1.DLL when building with VS2019)
 	if (MSVC)
 		add_definitions(/MP /d2FH4-)
+		add_definitions("-D_CRT_SECURE_NO_WARNINGS") # for strncpy
 		add_definitions("-D_USE_MATH_DEFINES") # for M_PI
 	endif()
 
