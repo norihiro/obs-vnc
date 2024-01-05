@@ -80,7 +80,7 @@ cd ..
 echo Preparing and building libvncserver...
 cmake \
 	-A $CMakeOptA \
-	-DWITH_OPENSSL=ON \
+	-DWITH_OPENSSL=OFF \
 	-DZLIB_INCLUDE_DIR=$OBSDeps/include -DZLIB_LIBRARY=$OBSDeps/lib/zlib.lib \
 	-DLZO_INCLUDE_DIR=$LIBVNCPath/deps/lzo/include -DLZO_LIBRARIES=$LIBVNCPath/deps/lzo/build/$build_config/lzo2.lib \
 	-DPNG_PNG_INCLUDE_DIR=$LIBVNCPath/deps/libpng \
