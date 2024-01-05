@@ -11,6 +11,7 @@ copy ..\LICENSE          ..\release\data\obs-plugins\%PluginName%\LICENCE-%Plugi
 copy %LIBVNCPath%\deps\libjpeg\LICENSE.md ..\release\data\obs-plugins\%PluginName%\LICENSE-libjpeg.md
 copy %LIBVNCPath%\deps\libpng\LICENSE ..\release\data\obs-plugins\%PluginName%\LICENSE-libpng.txt
 copy %LIBVNCPath%\deps\lzo\COPYING ..\release\data\obs-plugins\%PluginName%\COPYING-lzo.txt
+copy "c:\Program Files\OpenSSL\license.txt" ..\release\data\obs-plugins\%PluginName%\license-OpenSSL.txt
 
 REM Package ZIP archive
 7z a "%PluginName%-%PackageVersion%-obs%1-Windows.zip" "..\release\*"
