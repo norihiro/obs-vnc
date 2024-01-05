@@ -92,5 +92,7 @@ cmake \
 	-D LIBVNCSERVER_INSTALL=OFF \
 	-D WITH_TIGHTVNC_FILETRANSFER=OFF \
 	-D WITH_EXAMPLES=OFF \
+	-D WITH_TESTS=OFF \
+	-D CMAKE_BUILD_TYPE=$build_config \
 	.
 cmake --build . --config $build_config
