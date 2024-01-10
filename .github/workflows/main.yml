@@ -333,7 +333,8 @@ jobs:
           cmake --install build --config RelWithDebInfo --prefix "$(Resolve-Path -Path .)/release"
 
       - name: Package plugin
-        run: ci/windows/package-windows.cmd ${{ matrix.obs }}
+        shell: bash
+        run: ci/windows/package-windows.sh ${{ matrix.obs }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3

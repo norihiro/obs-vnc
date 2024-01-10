@@ -46,10 +46,6 @@ configure_file(
 	ci/ci_includes.sh.in
 	../ci/ci_includes.generated.sh
 )
-configure_file(
-	ci/ci_includes.cmd.in
-	../ci/ci_includes.generated.cmd
-)
 
 set(PLUGIN_SOURCES
 	src/obs-vnc-source-main.c
