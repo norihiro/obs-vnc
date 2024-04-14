@@ -228,6 +228,7 @@ static inline rfbClient *rfbc_start(struct vnc_source *src)
 	client->serverPort = src->config.host_port;
 	set_encodings_to_client(client, &src->config);
 	client->QoS_DSCP = src->config.qosdscp;
+	client->connectTimeout = src->config.rfb_timeout;
 
 	pthread_mutex_unlock(&src->config_mutex);
 

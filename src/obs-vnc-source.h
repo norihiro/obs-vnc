@@ -25,6 +25,7 @@ struct vncsrc_conig
 	char *user_name;
 #endif // LIBVNCSERVER_HAVE_SASL
 	char *plain_passwd;
+	unsigned int rfb_timeout;
 	int bpp; // bits per pixel; 8, 16, [32] only.
 	int encodings;
 	int compress;

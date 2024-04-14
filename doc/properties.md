@@ -15,6 +15,10 @@ This field is available if the plugin is built with libvncserver having SASL.
 Password for VNC server.
 Plain password is stored in the setting file.
 
+### Connection timeout
+(Windows only)
+Specifies the timeout to connect to the VNC server.
+
 ### Color level
 Select the color level to use on the link.
 Default is 24-bit and available settings are 24-bit, 16-bit, 8-bit.

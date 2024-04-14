@@ -79,6 +79,8 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		src->need_reconnect = true;
 	}
 
+	src->config.rfb_timeout = (unsigned int)obs_data_get_int(settings, "rfb_timeout");
+
 #ifdef LIBVNCSERVER_HAVE_SASL
 	const char *user_name = obs_data_get_string(settings, "user_name");
 	if (user_name && !*user_name) {
@@ -113,6 +115,11 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 static void vncsrc_get_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "host_port", 5900);
+#ifdef _WIN32
+	obs_data_set_default_int(settings, "rfb_timeout", 10);
+#else
+	obs_data_set_default_int(settings, "rfb_timeout", 60);
+#endif
 
 	obs_data_set_default_int(settings, "bpp", 32);
 	obs_data_set_default_int(settings, "encodings", -1);
@@ -134,6 +141,12 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 #ifdef LIBVNCSERVER_HAVE_SASL
 	obs_properties_add_text(props, "user_name", obs_module_text("User name"), OBS_TEXT_DEFAULT);
 #endif // LIBVNCSERVER_HAVE_SASL
+#ifdef _WIN32
+	/* On non-Windows system, signals will interrupt the connection so that
+	 * it is unnecessary to have this property. */
+	prop = obs_properties_add_int(props, "rfb_timeout", obs_module_text("Connection timeout"), 1, 120, 1);
+	obs_property_int_set_suffix(prop, " s");
+#endif
 
 	prop = obs_properties_add_list(props, "bpp", obs_module_text("Color level"), OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
