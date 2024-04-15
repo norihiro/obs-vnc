@@ -63,20 +63,29 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 		}                          \
 	} while (0)
 
+#define UPDATE_NOTIFY_RECONNECT(src, t, n, v)          \
+	do {                                           \
+		t x = (v);                             \
+		if (x != src->config.n) {              \
+			src->config.n = x;             \
+			vncsrc_request_reconnect(src); \
+		}                                      \
+	} while (0)
+
 	const char *host_name = obs_data_get_string(settings, "host_name");
 	if (host_name && (!src->config.host_name || strcmp(host_name, src->config.host_name))) {
 		BFREE_IF_NONNULL(src->config.host_name);
 		src->config.host_name = bstrdup(host_name);
-		src->need_reconnect = true;
+		vncsrc_request_reconnect(src);
 	}
 
-	UPDATE_NOTIFY(src, int, host_port, need_reconnect, (int)obs_data_get_int(settings, "host_port"));
+	UPDATE_NOTIFY_RECONNECT(src, int, host_port, (int)obs_data_get_int(settings, "host_port"));
 
 	const char *plain_passwd = obs_data_get_string(settings, "plain_passwd");
 	if (plain_passwd && (!src->config.plain_passwd || strcmp(plain_passwd, src->config.plain_passwd))) {
 		BFREE_IF_NONNULL(src->config.plain_passwd);
 		src->config.plain_passwd = bstrdup(plain_passwd);
-		src->need_reconnect = true;
+		vncsrc_request_reconnect(src);
 	}
 
 	src->config.rfb_timeout = (unsigned int)obs_data_get_int(settings, "rfb_timeout");
@@ -85,16 +94,16 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	const char *user_name = obs_data_get_string(settings, "user_name");
 	if (user_name && !*user_name) {
 		BFREE_IF_NONNULL(src->config.user_name);
-		src->need_reconnect = true;
+		vncsrc_request_reconnect(src);
 	}
 	else if (user_name && (!src->config.user_name || strcmp(user_name, src->config.user_name))) {
 		BFREE_IF_NONNULL(src->config.user_name);
 		src->config.user_name = bstrdup(user_name);
-		src->need_reconnect = true;
+		vncsrc_request_reconnect(src);
 	}
 #endif // LIBVNCSERVER_HAVE_SASL
 
-	UPDATE_NOTIFY(src, int, bpp, need_reconnect, (int)obs_data_get_int(settings, "bpp"));
+	UPDATE_NOTIFY_RECONNECT(src, int, bpp, (int)obs_data_get_int(settings, "bpp"));
 	UPDATE_NOTIFY(src, int, encodings, encoding_updated, (int)obs_data_get_int(settings, "encodings"));
 	UPDATE_NOTIFY(src, int, compress, encoding_updated, (int)obs_data_get_int(settings, "compress"));
 	UPDATE_NOTIFY(src, bool, jpeg, encoding_updated, obs_data_get_bool(settings, "jpeg"));

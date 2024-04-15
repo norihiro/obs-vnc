@@ -28,6 +28,7 @@
 #ifndef _WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <signal.h>
 #endif // ! _WIN32
 #include "plugin-macros.generated.h"
 #include "obs-vnc-source.h"
@@ -669,9 +670,30 @@ static inline void rfbc_interact(struct vnc_source *src, rfbClient *client, stru
 	} while (cont);
 }
 
+#ifndef _WIN32
+static THREAD_LOCAL bool in_vnc_thread = false;
+static void (*prev_sig_handler)(int) = NULL;
+static void (*prev_sig_action)(int, siginfo_t *, void *) = NULL;
+static bool sig_hander_set = false;
+
+static void handler(int signo, siginfo_t *info, void *context)
+{
+	if (in_vnc_thread)
+		return;
+	else if (prev_sig_action)
+		prev_sig_action(signo, info, context);
+	else if (prev_sig_handler)
+		prev_sig_handler(signo);
+}
+#endif
+
 static void *thread_main(void *data)
 {
 	struct vnc_source *src = data;
+
+#ifndef _WIN32
+	in_vnc_thread = true;
+#endif
 
 #ifndef _WIN32
 	setpriority(PRIO_PROCESS, 0, 19);
@@ -806,8 +828,34 @@ static void *thread_main(void *data)
 	return NULL;
 }
 
+static void interrupt_thread(struct vnc_source *src)
+{
+#ifndef _WIN32
+	if (src->thread) {
+		pthread_kill(src->thread, SIGUSR1);
+	}
+#endif
+}
+
 void vncsrc_thread_start(struct vnc_source *src)
 {
+#ifndef _WIN32
+	if (!sig_hander_set) {
+		struct sigaction sig_handler, prev;
+		sig_handler.sa_sigaction = handler;
+		sigemptyset(&sig_handler.sa_mask);
+		sig_handler.sa_flags = SA_SIGINFO;
+		sigaction(SIGUSR1, &sig_handler, &prev);
+		if ((prev.sa_flags & SA_SIGINFO) && prev.sa_sigaction)
+			prev_sig_action = prev.sa_sigaction;
+		else if (prev.sa_handler)
+			prev_sig_handler = prev.sa_handler;
+		else
+			prev_sig_handler = exit;
+		sig_hander_set = true;
+	}
+#endif
+
 	src->running = true;
 	src->need_reconnect = false;
 	pthread_create(&src->thread, NULL, thread_main, src);
@@ -815,6 +863,8 @@ void vncsrc_thread_start(struct vnc_source *src)
 
 void vncsrc_thread_stop(struct vnc_source *src)
 {
+	interrupt_thread(src);
+
 #ifdef _WIN32
 	if (src->running) {
 		src->running = false;
@@ -829,4 +879,10 @@ void vncsrc_thread_stop(struct vnc_source *src)
 
 	BFREE_IF_NONNULL(src->frame.data[0]);
 	BFREE_IF_NONNULL(src->fb_vnc);
+}
+
+void vncsrc_request_reconnect(struct vnc_source *src)
+{
+	src->need_reconnect = true;
+	interrupt_thread(src);
 }

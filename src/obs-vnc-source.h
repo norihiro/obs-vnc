@@ -102,6 +102,7 @@ struct vnc_source
 
 void vncsrc_thread_start(struct vnc_source *src);
 void vncsrc_thread_stop(struct vnc_source *src);
+void vncsrc_request_reconnect(struct vnc_source *src);
 
 #define BFREE_IF_NONNULL(x) \
 	if (x) {            \
