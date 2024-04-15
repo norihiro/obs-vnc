@@ -137,6 +137,16 @@ static void vncsrc_get_defaults(obs_data_t *settings)
 	obs_data_set_default_int(settings, "quality", 5);
 }
 
+bool reconnect_cb(obs_properties_t *props, obs_property_t *property, void *data)
+{
+	UNUSED_PARAMETER(props);
+	UNUSED_PARAMETER(property);
+	struct vnc_source *src = data;
+	vncsrc_request_reconnect(src);
+
+	return false;
+}
+
 static obs_properties_t *vncsrc_get_properties(void *unused)
 {
 	UNUSED_PARAMETER(unused);
@@ -156,6 +166,8 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	prop = obs_properties_add_int(props, "rfb_timeout", obs_module_text("Connection timeout"), 1, 120, 1);
 	obs_property_int_set_suffix(prop, " s");
 #endif
+
+	obs_properties_add_button(props, "reconnect", obs_module_text("Reconnect"), reconnect_cb);
 
 	prop = obs_properties_add_list(props, "bpp", obs_module_text("Color level"), OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
