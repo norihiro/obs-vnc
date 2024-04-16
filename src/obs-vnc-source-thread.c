@@ -667,7 +667,7 @@ static inline void rfbc_interact(struct vnc_source *src, rfbClient *client, stru
 		}
 
 		struct vncsrc_interaction_event_s ie;
-		circlebuf_pop_front(&src->interacts, &ie, sizeof(ie));
+		deque_pop_front(&src->interacts, &ie, sizeof(ie));
 		if (src->interacts.size > 0)
 			cont = 1;
 		pthread_mutex_unlock(&src->interact_mutex);
@@ -781,8 +781,8 @@ static void *thread_main(void *data)
 			if (!pthread_mutex_trylock(&src->interact_mutex)) {
 				// discard interaction queue
 				while (src->interacts.size >= sizeof(struct vncsrc_interaction_event_s))
-					circlebuf_pop_front(&src->interacts, NULL,
-							    sizeof(struct vncsrc_interaction_event_s));
+					deque_pop_front(&src->interacts, NULL,
+							sizeof(struct vncsrc_interaction_event_s));
 				pthread_mutex_unlock(&src->interact_mutex);
 			}
 			if (!client) {

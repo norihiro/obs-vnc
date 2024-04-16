@@ -3,8 +3,18 @@
 
 #include <obs.h>
 #include <util/threading.h>
-#include <util/circlebuf.h>
 #include <rfb/rfbconfig.h>
+
+#if LIBOBS_API_VER >= MAKE_SEMANTIC_VERSION(30, 0, 0)
+#include <util/deque.h>
+#else
+#include <util/circlebuf.h>
+#define deque_pop_front circlebuf_pop_front
+#define deque_push_back circlebuf_push_back
+#define deque_init circlebuf_init
+#define deque_free circlebuf_free
+#define deque circlebuf
+#endif
 
 enum vnc_encodings_e {
 	ve_tight = 1,
@@ -95,7 +105,7 @@ struct vnc_source
 	void *fb_vnc; // for 8-bit and 16-bit
 
 	pthread_mutex_t interact_mutex;
-	struct circlebuf interacts;
+	struct deque interacts;
 
 	// threads
 	pthread_t thread;

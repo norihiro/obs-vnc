@@ -27,7 +27,7 @@ static void *vncsrc_create(obs_data_t *settings, obs_source_t *source)
 	obs_source_set_async_unbuffered(source, true);
 
 	pthread_mutex_init(&src->config_mutex, NULL);
-	circlebuf_init(&src->interacts);
+	deque_init(&src->interacts);
 	pthread_mutex_init(&src->interact_mutex, NULL);
 
 	vncsrc_update(src, settings);
@@ -44,7 +44,7 @@ static void vncsrc_destroy(void *data)
 	vncsrc_thread_stop(src);
 
 	vncsrc_config_destroy_member(&src->config);
-	circlebuf_free(&src->interacts);
+	deque_free(&src->interacts);
 	bfree(src);
 }
 
@@ -215,7 +215,7 @@ static inline void queue_interaction(struct vnc_source *src, struct vncsrc_inter
 {
 	debug("queuing interaction event: type=%d\n", interact->type);
 	if (!pthread_mutex_lock(&src->interact_mutex)) {
-		circlebuf_push_back(&src->interacts, interact, sizeof(*interact));
+		deque_push_back(&src->interacts, interact, sizeof(*interact));
 		pthread_mutex_unlock(&src->interact_mutex);
 	}
 }
