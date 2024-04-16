@@ -40,6 +40,7 @@ struct vncsrc_conig
 		connect_at_active_disconnect_at_hidden = 2 + 4,
 		connect_at_active_disconnect_at_inactive = 2 + 8,
 	} connect_opt;
+	bool clear_at_disconnect;
 
 	int skip_update_l, skip_update_r, skip_update_t, skip_update_b;
 };

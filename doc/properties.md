@@ -53,6 +53,10 @@ Specifies when to connect to the server and when to disconnect from the server.
 - Disconnect at inactive: When the source is not shown on the Program, the connection will be disconnected.
 The default is Always.
 
+### Clear texture at disconnection
+If enabled, the texture will be cleared when the VNC connection is disconnected.
+If disabled, the texture will remain unchanged.
+
 ### Skip update (left, right, top, bottom)
 This property requests the server to send only inside the specified area.
 It will help to reduce the amount of data transferred from the VNC server.

@@ -257,6 +257,16 @@ static inline bool rfbc_poll(rfbClient *client)
 	return 0; // success
 }
 
+static void rfbc_disconnect(struct vnc_source *src, rfbClient **client)
+{
+	if (*client) {
+		rfbClientCleanup(*client);
+		*client = NULL;
+	}
+	if (src->config.clear_at_disconnect)
+		obs_source_output_video(src->source, NULL);
+}
+
 struct vncsrc_keymouse_state_s
 {
 	int buttonMask;
@@ -710,10 +720,7 @@ static void *thread_main(void *data)
 		bool just_wait = false;
 		int display_flags = os_atomic_load_long(&src->display_flags);
 		if (src->need_reconnect) {
-			if (client) {
-				rfbClientCleanup(client);
-				client = NULL;
-			}
+			rfbc_disconnect(src, &client);
 			cnt_failure = 0;
 			n_wait = 0;
 			src->need_reconnect = false;
@@ -758,8 +765,7 @@ static void *thread_main(void *data)
 					to_disconnect = true;
 			}
 			if (to_disconnect) {
-				rfbClientCleanup(client);
-				client = NULL;
+				rfbc_disconnect(src, &client);
 				just_wait = true;
 			}
 		}
@@ -809,8 +815,7 @@ static void *thread_main(void *data)
 							     client->updateRect.w, client->updateRect.h, 0);
 			}
 			if (rfbc_poll(client)) {
-				rfbClientCleanup(client);
-				client = NULL;
+				rfbc_disconnect(src, &client);
 			}
 		}
 
@@ -822,9 +827,7 @@ static void *thread_main(void *data)
 		rfbc_interact(src, client, &state);
 	}
 
-	if (client)
-		rfbClientCleanup(client);
-	client = NULL;
+	rfbc_disconnect(src, &client);
 	return NULL;
 }
 

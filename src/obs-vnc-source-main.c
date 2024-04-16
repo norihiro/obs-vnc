@@ -110,6 +110,7 @@ static void vncsrc_update(void *data, obs_data_t *settings)
 	UPDATE_NOTIFY(src, int, quality, encoding_updated, (int)obs_data_get_int(settings, "quality"));
 	UPDATE_NOTIFY(src, int, qosdscp, dscp_updated, (int)obs_data_get_int(settings, "qosdscp"));
 	src->config.connect_opt = (int)obs_data_get_int(settings, "connect_opt");
+	src->config.clear_at_disconnect = obs_data_get_bool(settings, "clear_at_disconnect");
 
 	UPDATE_NOTIFY(src, int, skip_update_l, skip_updated, (int)obs_data_get_int(settings, "skip_update_l"));
 	UPDATE_NOTIFY(src, int, skip_update_r, skip_updated, (int)obs_data_get_int(settings, "skip_update_r"));
@@ -200,6 +201,7 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 				  connect_at_active_disconnect_at_hidden);
 	obs_property_list_add_int(prop, obs_module_text("Connect at activated, disconnect at inactive"),
 				  connect_at_active_disconnect_at_inactive);
+	obs_properties_add_bool(props, "clear_at_disconnect", obs_module_text("Clear texture at disconnection"));
 
 	obs_properties_add_int(props, "skip_update_l", obs_module_text("Skip update (left)"), 0, 32767, 1);
 	obs_properties_add_int(props, "skip_update_r", obs_module_text("Skip update (right)"), 0, 32767, 1);
