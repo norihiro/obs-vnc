@@ -15,8 +15,10 @@ set(LINUX_MAINTAINER_EMAIL "norihiro@nagater.net")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(libobs REQUIRED)
-include(cmake/ObsPluginHelpers.cmake)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+	find_package(libobs REQUIRED)
+	include(cmake/ObsPluginHelpers.cmake)
+endif()
 
 # Linux and macOS; use pkg-config to find libvncclient
 option(USE_PKG_CONFIG "Use pkg-config to find libvncclient" ON)
@@ -38,39 +40,30 @@ configure_file(
 	src/plugin-macros.h.in
 	plugin-macros.generated.h
 )
-configure_file(
-	installer/installer-Windows.iss.in
-	installer-Windows.generated.iss
-)
-
-configure_file(
-	ci/ci_includes.sh.in
-	ci/ci_includes.generated.sh
-)
 
 set(PLUGIN_SOURCES
 	src/obs-vnc-source-main.c
 	src/obs-vnc-source-thread.c
 )
 
-add_library(${CMAKE_PROJECT_NAME} MODULE ${PLUGIN_SOURCES})
+add_library(${PROJECT_NAME} MODULE ${PLUGIN_SOURCES})
 
-target_include_directories(${CMAKE_PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}
 	PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}
 	OBS::libobs
 )
 
 if(LIBVNCCLIENT_FOUND)
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} ${LIBVNCCLIENT_LIBRARIES})
 else()
-	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
-	target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PRIVATE ${LIBVNCCLIENT_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} ${LIBVNCCLIENT_STATIC_LIBRARIES})
 endif()
 
 if(OS_WINDOWS)
@@ -81,7 +74,7 @@ if(OS_WINDOWS)
 		add_definitions("-D_USE_MATH_DEFINES") # for M_PI
 	endif()
 
-	target_link_libraries(${CMAKE_PROJECT_NAME} OBS::w32-pthreads)
+	target_link_libraries(${PROJECT_NAME} OBS::w32-pthreads)
 
 	# Workaround to link OpenSSL library required by vncclient
 	set(OPENSSL_USE_STATIC_LIBS ON)
@@ -89,25 +82,40 @@ if(OS_WINDOWS)
 	if(OPENSSL_FOUND)
 		# `crypt32` is required according to a description [1].
 		# - [1] https://github.com/microsoft/vcpkg/pull/6309
-		target_link_libraries(${CMAKE_PROJECT_NAME} ${OPENSSL_LIBRARIES} crypt32)
+		target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} crypt32)
 	endif()
 endif()
 
 if(OS_LINUX)
-	target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g -Wall -Wextra)
-	target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--no-undefined)
+	target_compile_options(${PROJECT_NAME} PRIVATE -g -Wall -Wextra)
+	target_link_options(${PROJECT_NAME} PRIVATE -Wl,--no-undefined)
 endif()
 
 if(OS_MACOS)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fvisibility=default")
 
-	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 	set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
-	set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
+	set(MACOSX_PLUGIN_BUNDLE_VERSION "${PROJECT_VERSION}")
 	set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
 endif()
 
-setup_plugin_target(${CMAKE_PROJECT_NAME})
+setup_plugin_target(${PROJECT_NAME})
 
-configure_file(installer/installer-macOS.pkgproj.in installer-macOS.generated.pkgproj)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+	configure_file(
+		installer/installer-Windows.iss.in
+		installer-Windows.generated.iss
+	)
+
+	configure_file(
+		ci/ci_includes.sh.in
+		ci/ci_includes.generated.sh
+	)
+
+	configure_file(
+		installer/installer-macOS.pkgproj.in
+		installer-macOS.generated.pkgproj
+	)
+endif()
