@@ -6,6 +6,7 @@ set(PLUGIN_AUTHOR "Norihiro Kamae")
 set(MACOS_BUNDLEID "net.nagater.obs-vnc")
 set(MACOS_PACKAGE_UUID "936A7E9F-1F28-4DE5-8553-7F03A266345B")
 set(MACOS_INSTALLER_UUID "F7A275F7-2A5F-4578-8017-D841EB2C3DB0")
+set(PLUGIN_URL "https://obsproject.com/forum/resources/vnc-source.1000/")
 set(LINUX_MAINTAINER_EMAIL "norihiro@nagater.net")
 
 # TAKE NOTE: No need to edit things past this point
