@@ -25,6 +25,7 @@
 #include <obs-module.h>
 #include <util/platform.h>
 #include <util/threading.h>
+#include <util/dstr.h>
 #ifndef _WIN32
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -37,6 +38,40 @@
 
 #define debug(fmt, ...) (void)0
 // #define debug(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+
+static char *blog_format(const char *format)
+{
+	struct dstr msg = {0};
+	dstr_init_copy(&msg, "[" PLUGIN_NAME "/libvncclient] ");
+
+	size_t len = strlen(format);
+	if (len > 0 && format[len - 1] == '\n')
+		len--;
+
+	dstr_ncat(&msg, format, len);
+
+	return msg.array;
+}
+
+static void rfb_log_info(const char *format, ...)
+{
+	char *fmt = blog_format(format);
+	va_list args;
+	va_start(args, format);
+	blogva(LOG_INFO, fmt, args);
+	va_end(args);
+	bfree(fmt);
+}
+
+static void rfb_log_error(const char *format, ...)
+{
+	char *fmt = blog_format(format);
+	va_list args;
+	va_start(args, format);
+	blogva(LOG_ERROR, fmt, args);
+	va_end(args);
+	bfree(fmt);
+}
 
 static inline int max_int(int a, int b)
 {
@@ -842,6 +877,9 @@ static void interrupt_thread(struct vnc_source *src)
 
 void vncsrc_thread_start(struct vnc_source *src)
 {
+	rfbClientLog = rfb_log_info;
+	rfbClientErr = rfb_log_error;
+
 #ifndef _WIN32
 	if (!sig_hander_set) {
 		struct sigaction sig_handler, prev;

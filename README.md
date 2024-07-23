@@ -27,6 +27,11 @@ As a workaround of multi-display, the plugin provides settings `Skip update (lef
 these settings will avoid tranfering unnecessary picture.
 It is recommended to set the same values to the Crop settings in Scene Item Transform of your source.
 
+## Trouble-shooting
+
+If something wrong happened, check the log file by navigating `Help` -> `Log Files` -> `View Current Log`.
+Messages from this plugin will be marked as `[obs-vnc]` and `[obs-vnc/libvncclient]`.
+
 ## Furture plan
 
 * configurations for hide cursor, user-name, etc.,
