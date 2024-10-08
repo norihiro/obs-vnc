@@ -127,6 +127,12 @@ static rfbBool vnc_malloc_fb(rfbClient *client)
 
 	debug("vnc_malloc_fb width=%d height=%d\n", client->width, client->height);
 
+	if (client->width <= 0 || client->height <= 0) {
+		blog(LOG_ERROR, "vnc_malloc_fb gets 0-length geometry %dx%d", client->width, client->height);
+		client->frameBuffer = NULL;
+		return FALSE;
+	}
+
 	src->frame.width = client->width;
 	src->frame.height = client->height;
 	set_updateRect(src, client);
