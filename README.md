@@ -1,4 +1,4 @@
-# OBS VNC Source
+# VNC Source plugin for OBS Studio
 
 ## Introduction
 
