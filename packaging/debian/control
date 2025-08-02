@@ -1,0 +1,24 @@
+Source: vnc-plugin-for-obs
+Section: video
+Priority: optional
+Maintainer: Norihiro Kamae <norihiro-ppa-plugins-for-obs-studio@nagater.net>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ obs-studio,
+ qt6-base-dev, qt6-base-private-dev, libqt6svg6-dev, qt6-wayland,
+ libxcb1-dev, libx11-xcb-dev, libwayland-dev, libglvnd-dev,
+ libvncserver-dev
+Conflicts: obs-vnc
+Standards-Version: 4.6.2
+Homepage: https://github.com/norihiro/obs-vnc
+
+Package: vnc-plugin-for-obs
+Architecture: any
+Multi-Arch: foreign
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: VNC plugin for OBS Studio
+
