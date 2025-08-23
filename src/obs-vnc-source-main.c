@@ -148,9 +148,8 @@ bool reconnect_cb(obs_properties_t *props, obs_property_t *property, void *data)
 	return false;
 }
 
-static obs_properties_t *vncsrc_get_properties(void *unused)
+static obs_properties_t *vncsrc_get_properties(void *data)
 {
-	UNUSED_PARAMETER(unused);
 	obs_properties_t *props;
 	obs_property_t *prop;
 	props = obs_properties_create();
@@ -168,7 +167,7 @@ static obs_properties_t *vncsrc_get_properties(void *unused)
 	obs_property_int_set_suffix(prop, " s");
 #endif
 
-	obs_properties_add_button(props, "reconnect", obs_module_text("Reconnect"), reconnect_cb);
+	obs_properties_add_button2(props, "reconnect", obs_module_text("Reconnect"), reconnect_cb, data);
 
 	prop = obs_properties_add_list(props, "bpp", obs_module_text("Color level"), OBS_COMBO_TYPE_LIST,
 				       OBS_COMBO_FORMAT_INT);
