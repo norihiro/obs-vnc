@@ -315,7 +315,7 @@ jobs:
             "-DCMAKE_INSTALL_PREFIX=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
             "-DCMAKE_PREFIX_PATH=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
             "-D USE_PKG_CONFIG=OFF"
-            "-DLIBVNCCLIENT_INCLUDE_DIRS=${{ env.LIBVNCPath }}"
+            "-DLIBVNCCLIENT_INCLUDE_DIRS=${{ env.LIBVNCPath }}\include"
             "-DLIBVNCCLIENT_STATIC_LIBRARY_DIRS=${{ env.LIBVNCPath }}"
             "-DLIBVNCCLIENT_STATIC_LIBRARIES=${{ env.LIBVNCPath }}\RelWithDebInfo\vncclient.lib;${{ env.OBSDeps }}\lib\zlib.lib;${{ env.LIBVNCPath }}\deps\lzo\build\RelWithDebInfo\lzo2.lib;${{ env.LIBVNCPath }}\deps\libpng\RelWithDebInfo\libpng16_static.lib;${{ env.LIBVNCPath }}\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
           )
