@@ -24,8 +24,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        obs: [28]
-        ubuntu: ['ubuntu-22.04']
+        include:
+          - obs: 28
+            ubuntu: 'ubuntu-22.04'
+          - obs: 31
+            ubuntu: 'ubuntu-24.04'
     defaults:
       run:
         shell: bash
@@ -66,9 +69,7 @@ jobs:
           . ci/ci_includes.generated.sh
           set -ex
           sudo apt install '${{ env.FILE_NAME }}'
-          case ${{ matrix.obs }} in
-            28) plugins_dir=/usr/lib/x86_64-linux-gnu/obs-plugins ;;
-          esac
+          plugins_dir=/usr/lib/x86_64-linux-gnu/obs-plugins
           ldd $plugins_dir/${PLUGIN_NAME}.so > ldd.out
           if grep not.found ldd.out ; then
             echo "Error: unresolved shared object." >&2
