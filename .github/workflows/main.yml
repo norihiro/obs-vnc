@@ -37,7 +37,7 @@ jobs:
 
       - name: Download obs-studio development environment
         id: obsdeps
-        uses: norihiro/obs-studio-devel-action@v1-beta
+        uses: norihiro/obs-studio-devel-action@v2
         with:
           obs: ${{ matrix.obs }}
           verbose: true
@@ -47,24 +47,12 @@ jobs:
         run: |
           set -ex
           sudo apt install libvncserver-dev
-          OBS_QT_VERSION_MAJOR=${{ steps.obsdeps.outputs.OBS_QT_VERSION_MAJOR }}
-          mkdir build
-          cd build
-          case ${{ matrix.obs }} in
-            28)
-              cmake_opt=(
-                -D CPACK_DEBIAN_PACKAGE_DEPENDS='obs-studio (>= 28)'
-              )
-              ;;
-          esac
-          cmake .. \
-            -D QT_VERSION=$OBS_QT_VERSION_MAJOR \
-            -D CMAKE_INSTALL_PREFIX=/usr \
+          cmake -S . -B build \
             -D CMAKE_BUILD_TYPE=RelWithDebInfo \
-            -D LINUX_PORTABLE=OFF \
             -D CPACK_DEBIAN_PACKAGE_SHLIBDEPS=ON \
             -D PKG_SUFFIX=-obs${{ matrix.obs }}-${{ matrix.ubuntu }}-x86_64 \
-            "${cmake_opt[@]}"
+            ${{ steps.obsdeps.outputs.PLUGIN_CMAKE_OPTIONS }}
+          cd build
           make -j4
           make package
           echo "FILE_NAME=$(find $PWD -name '*.deb' | head -n 1)" >> $GITHUB_ENV
@@ -147,7 +135,7 @@ jobs:
 
       - name: Download obs-studio development environment
         id: obsdeps
-        uses: norihiro/obs-studio-devel-action@v1-beta
+        uses: norihiro/obs-studio-devel-action@v2
         with:
           path: /tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
           arch: ${{ matrix.arch }}
@@ -288,7 +276,7 @@ jobs:
           submodules: recursive
       - name: Download obs-studio
         id: obsdeps
-        uses: norihiro/obs-studio-devel-action@v1-beta
+        uses: norihiro/obs-studio-devel-action@v2
         with:
           obs: ${{ matrix.obs }}
           qt: ${{ env.qt }}
