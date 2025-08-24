@@ -149,36 +149,24 @@ jobs:
       - name: Install libvncserver
         run: |
           export arch=${{ matrix.arch }}
-          ci/macos/install-libvncserver-${{ matrix.arch }}.sh
+          ci/macos/install-libvncserver-native.sh
 
       - name: Build plugin
         run: |
           arch=${{ matrix.arch }}
           deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
-          MACOSX_DEPLOYMENT_TARGET=${{ steps.obsdeps.outputs.MACOSX_DEPLOYMENT_TARGET }}
-          OBS_QT_VERSION_MAJOR=${{ steps.obsdeps.outputs.OBS_QT_VERSION_MAJOR }}
           GIT_TAG=$(git describe --tags --always)
           PKG_SUFFIX=-${GIT_TAG}-obs${{ matrix.obs }}-macos-${{ matrix.arch }}
           if test "$arch" = 'arm64'; then
             export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
           fi
           set -e
-          case "${{ matrix.obs }}" in
-            28)
-              cmake_opt=(
-                -D MACOSX_PLUGIN_BUNDLE_TYPE=BNDL
-              )
-              ;;
-          esac
           cmake -S . -B build -G Ninja \
-            -D QT_VERSION=$OBS_QT_VERSION_MAJOR \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_PREFIX_PATH="$PWD/release/" \
             -DCMAKE_OSX_ARCHITECTURES=${arch/#universal/x86_64;arm64} \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET} \
-            -DCMAKE_FRAMEWORK_PATH="$deps/Frameworks;$deps/lib/cmake;$deps" \
             -D PKG_SUFFIX=$PKG_SUFFIX \
-            "${cmake_opt[@]}"
+            ${{ steps.obsdeps.outputs.PLUGIN_CMAKE_OPTIONS }}
           cmake --build build --config RelWithDebInfo
           echo "PKG_SUFFIX='$PKG_SUFFIX'" >> ci/ci_includes.generated.sh
 
@@ -187,32 +175,24 @@ jobs:
           set -ex
           . ci/ci_includes.generated.sh
           cmake --install build --config RelWithDebInfo --prefix=release
-          case ${{ matrix.obs }} in
-            28)
-              (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh \
-                -obs 28 \
-                -lib lib/ \
-                -license Resources/ \
-                MacOS/${PLUGIN_NAME}
-              )
-              cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
-              ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
-              ;;
-          esac
+          (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh \
+            -obs ${{ matrix.obs }} \
+            -lib lib/ \
+            -license Resources/ \
+            MacOS/${PLUGIN_NAME}
+          )
+          cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
+          ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
 
       - name: Codesign
         if: ${{ github.event_name != 'pull_request' && steps.setup.outputs.haveCodesignIdent == 'true' }}
         run: |
           . ci/ci_includes.generated.sh
           set -e
-          case ${{ matrix.obs }} in
-            28)
-              files=(
-                $(find release/${PLUGIN_NAME}.plugin/ -name '*.dylib')
-                release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
-              )
-              ;;
-          esac
+          files=(
+            $(find release/${PLUGIN_NAME}.plugin/ -name '*.dylib')
+            release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
+          )
           for dylib in "${files[@]}"; do
             codesign --force --sign "${{ secrets.MACOS_SIGNING_APPLICATION_IDENTITY }}" "$dylib"
           done
@@ -226,9 +206,7 @@ jobs:
           set -ex
           zipfile=$PWD/package/${PLUGIN_NAME}${PKG_SUFFIX}.zip
           mkdir package
-          case ${{ matrix.obs }} in
-            28) (cd release/ && zip -r $zipfile ${PLUGIN_NAME}.plugin) ;;
-          esac
+          (cd release/ && zip -r $zipfile ${PLUGIN_NAME}.plugin)
           ci/macos/install-packagesbuild.sh
           packagesbuild \
             --build-folder $PWD/package/ \
@@ -310,16 +288,13 @@ jobs:
         run: |
           $CmakeArgs = @(
             '-G', "${{ env.visualStudio }}"
-            '-DQT_VERSION=${{ steps.obsdeps.outputs.OBS_QT_VERSION_MAJOR }}'
             '-DCMAKE_SYSTEM_VERSION=10.0.18363.657'
-            "-DCMAKE_INSTALL_PREFIX=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
-            "-DCMAKE_PREFIX_PATH=$(Resolve-Path -Path "./obs-build-dependencies/plugin-deps-${{ matrix.arch }}")"
             "-D USE_PKG_CONFIG=OFF"
             "-DLIBVNCCLIENT_INCLUDE_DIRS=${{ env.LIBVNCPath }}\include"
             "-DLIBVNCCLIENT_STATIC_LIBRARY_DIRS=${{ env.LIBVNCPath }}"
             "-DLIBVNCCLIENT_STATIC_LIBRARIES=${{ env.LIBVNCPath }}\RelWithDebInfo\vncclient.lib;${{ env.OBSDeps }}\lib\zlib.lib;${{ env.LIBVNCPath }}\deps\lzo\build\RelWithDebInfo\lzo2.lib;${{ env.LIBVNCPath }}\deps\libpng\RelWithDebInfo\libpng16_static.lib;${{ env.LIBVNCPath }}\deps\libjpeg\RelWithDebInfo\turbojpeg-static.lib;wsock32.lib;ws2_32.lib"
           )
-          cmake -S . -B build @CmakeArgs
+          cmake -S . -B build ${{ steps.obsdeps.outputs.PLUGIN_CMAKE_OPTIONS_PS }} @CmakeArgs
           cmake --build build --config RelWithDebInfo -j 4
           cmake --install build --config RelWithDebInfo --prefix "$(Resolve-Path -Path .)/release"
 
