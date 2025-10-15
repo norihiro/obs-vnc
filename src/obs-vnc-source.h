@@ -5,7 +5,7 @@
 #include <util/threading.h>
 #include <rfb/rfbconfig.h>
 
-#if LIBOBS_API_VER >= MAKE_SEMANTIC_VERSION(30, 0, 0)
+#if LIBOBS_API_VER >= MAKE_SEMANTIC_VERSION(30, 1, 0)
 #include <util/deque.h>
 #else
 #include <util/circlebuf.h>
