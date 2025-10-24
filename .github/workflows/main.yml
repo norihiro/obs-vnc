@@ -174,12 +174,21 @@ jobs:
           set -ex
           . build/ci/ci_includes.generated.sh
           cmake --install build --config RelWithDebInfo --prefix=release
-          (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh \
-            -obs ${{ matrix.obs }} \
-            -lib lib/ \
-            -license Resources/ \
-            MacOS/${PLUGIN_NAME}
-          )
+
+          ci/macos/change-rpath.py \
+            --exclude-regex='(/usr/lib/|/System/Library/)' \
+            --exclude-regex='.*(obs-frontend-api|libobs|/Qt)' \
+            --libdir release/${PLUGIN_NAME}.plugin/Contents/lib-${{ matrix.arch }} \
+            --license-dir Resources/ \
+            --verbose \
+            release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
+          ci/macos/change-rpath.py \
+            --exclude-regex='(/usr/lib/|/System/Library/)' \
+            --exclude-regex='.*(obs-frontend-api|libobs|/Qt)' \
+            --check-invalid-regex='(/usr/local|/opt)' \
+            --check \
+            release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME} \
+            release/${PLUGIN_NAME}.plugin/Contents/lib-${{ matrix.arch }}/*
           cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
           ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
 
