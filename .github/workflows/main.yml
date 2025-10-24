@@ -66,7 +66,7 @@ jobs:
           path: '${{ env.FILE_NAME }}'
       - name: Check package
         run: |
-          . ci/ci_includes.generated.sh
+          . build/ci/ci_includes.generated.sh
           set -ex
           sudo apt install '${{ env.FILE_NAME }}'
           plugins_dir=/usr/lib/x86_64-linux-gnu/obs-plugins
@@ -89,6 +89,86 @@ jobs:
           - obs: 28
             arch: arm64
             macos: macos-14
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download obs-studio development environment
+        id: obsdeps
+        uses: norihiro/obs-studio-devel-action@v2
+        with:
+          path: /tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
+          arch: ${{ matrix.arch }}
+          obs: ${{ matrix.obs }}
+          verbose: true
+          qt: ${{ env.qt }}
+
+      - name: Install libvncserver
+        run: |
+          export arch=${{ matrix.arch }}
+          ci/macos/install-libvncserver-native.sh
+
+      - name: Build plugin
+        run: |
+          arch=${{ matrix.arch }}
+          deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
+          GIT_TAG=$(git describe --tags --always)
+          PKG_SUFFIX=-${GIT_TAG}-obs${{ matrix.obs }}-macos-${{ matrix.arch }}
+          if test "$arch" = 'arm64'; then
+            export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
+          fi
+          set -e
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_PREFIX_PATH="$PWD/release/" \
+            -DCMAKE_OSX_ARCHITECTURES=${arch/#universal/x86_64;arm64} \
+            -D PKG_SUFFIX=$PKG_SUFFIX \
+            ${{ steps.obsdeps.outputs.PLUGIN_CMAKE_OPTIONS }}
+          cmake --build build --config RelWithDebInfo
+
+      - name: Prepare package
+        run: |
+          set -ex
+          . build/ci/ci_includes.generated.sh
+          cmake --install build --config RelWithDebInfo --prefix=release
+
+          ci/macos/change-rpath.py \
+            --exclude-regex='(/usr/lib/|/System/Library/)' \
+            --exclude-regex='.*(obs-frontend-api|libobs|/Qt)' \
+            --libdir release/${PLUGIN_NAME}.plugin/Contents/lib-${{ matrix.arch }} \
+            --license-dir Resources/ \
+            --verbose \
+            release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
+          ci/macos/change-rpath.py \
+            --exclude-regex='(/usr/lib/|/System/Library/)' \
+            --exclude-regex='.*(obs-frontend-api|libobs|/Qt)' \
+            --check-invalid-regex='(/usr/local|/opt)' \
+            --check \
+            release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME} \
+            release/${PLUGIN_NAME}.plugin/Contents/lib-${{ matrix.arch }}/*
+          cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
+          ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
+
+          tar c release build > tmp-${{ matrix.arch }}.tar
+
+      - name: Upload release directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-${{ matrix.arch }}
+          path: tmp-*.tar
+
+  macos_lipo:
+    runs-on: macos-14
+    needs: macos_build
+    strategy:
+      fail-fast: false
+      matrix:
+        obs: [28]
     defaults:
       run:
         shell: bash
@@ -136,58 +216,43 @@ jobs:
             --team-id "$TEAM_ID" \
             --password "${{ secrets.MACOS_NOTARIZATION_PASSWORD }}"
 
-      - name: Download obs-studio development environment
-        id: obsdeps
-        uses: norihiro/obs-studio-devel-action@v2
+      - run: brew install coreutils
+        # required for sha256sum
+
+      - uses: actions/download-artifact@v4
         with:
-          path: /tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
-          arch: ${{ matrix.arch }}
-          obs: ${{ matrix.obs }}
-          verbose: true
-          qt: ${{ env.qt }}
+          name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-x86_64
 
-      - name: Install libvncserver
-        run: |
-          export arch=${{ matrix.arch }}
-          ci/macos/install-libvncserver-native.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-arm64
 
-      - name: Build plugin
+      - name: Run lipo
         run: |
-          arch=${{ matrix.arch }}
-          deps=/tmp/deps-${{ matrix.obs }}-${{ matrix.arch }}
-          GIT_TAG=$(git describe --tags --always)
-          PKG_SUFFIX=-${GIT_TAG}-obs${{ matrix.obs }}-macos-${{ matrix.arch }}
-          if test "$arch" = 'arm64'; then
-            export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
-          fi
           set -e
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_PREFIX_PATH="$PWD/release/" \
-            -DCMAKE_OSX_ARCHITECTURES=${arch/#universal/x86_64;arm64} \
-            -D PKG_SUFFIX=$PKG_SUFFIX \
-            ${{ steps.obsdeps.outputs.PLUGIN_CMAKE_OPTIONS }}
-          cmake --build build --config RelWithDebInfo
-          echo "PKG_SUFFIX='$PKG_SUFFIX'" >> ci/ci_includes.generated.sh
 
-      - name: Prepare package
-        run: |
-          set -ex
-          . ci/ci_includes.generated.sh
-          cmake --install build --config RelWithDebInfo --prefix=release
-          (cd release/${PLUGIN_NAME}.plugin/Contents && ../../../ci/macos/change-rpath.sh \
-            -obs ${{ matrix.obs }} \
-            -lib lib/ \
-            -license Resources/ \
-            MacOS/${PLUGIN_NAME}
-          )
-          cp LICENSE release/${PLUGIN_NAME}.plugin/Contents/Resources/$PLUGIN_NAME-LICENSE
-          ci/macos/test-dylib.sh -28 release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
+          for arch in x86_64 arm64; do
+            mkdir $arch
+            (cd $arch && tar xf ../tmp-$arch.tar)
+          done
+          mv arm64/build .
+
+          . build/ci/ci_includes.generated.sh
+
+          mkdir -p release/${PLUGIN_NAME}.plugin/Contents/{MacOS,Resources}
+
+          for arch in x86_64 arm64; do
+            mv $arch/release/${PLUGIN_NAME}.plugin/Contents/lib-$arch release/${PLUGIN_NAME}.plugin/Contents/lib-$arch
+            mv -f $arch/${PLUGIN_NAME}.plugin/Contents/Resources/* release/${PLUGIN_NAME}.plugin/Contents/Resources/ || true
+          done
+
+          lipo -create {x86_64,arm64}/release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME} \
+            -output release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
 
       - name: Codesign
         if: ${{ github.event_name != 'pull_request' && steps.setup.outputs.haveCodesignIdent == 'true' }}
         run: |
-          . ci/ci_includes.generated.sh
+          . build/ci/ci_includes.generated.sh
           set -e
           files=(
             $(find release/${PLUGIN_NAME}.plugin/ -name '*.dylib')
@@ -202,7 +267,7 @@ jobs:
 
       - name: Package
         run: |
-          . ci/ci_includes.generated.sh
+          . build/ci/ci_includes.generated.sh
           set -ex
           zipfile=$PWD/package/${PLUGIN_NAME}${PKG_SUFFIX}.zip
           mkdir package
@@ -215,7 +280,7 @@ jobs:
       - name: Productsign
         if: ${{ github.event_name != 'pull_request' && steps.setup.outputs.haveCodesignIdent == 'true' }}
         run: |
-          . ci/ci_includes.generated.sh
+          . build/ci/ci_includes.generated.sh
           pkgfile=package/${PLUGIN_NAME}${PKG_SUFFIX}.pkg
           set -e
           productsign --sign "${{ secrets.MACOS_SIGNING_INSTALLER_IDENTITY }}" $pkgfile package/${PLUGIN_NAME}-signed.pkg
@@ -232,7 +297,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifactName }}-macos-obs${{ matrix.obs }}-${{ matrix.arch }}
+          name: ${{ env.artifactName }}-macos-obs${{ matrix.obs }}-universal
           path: package/*
 
   windows_build:

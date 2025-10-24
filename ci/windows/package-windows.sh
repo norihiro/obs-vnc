@@ -1,7 +1,7 @@
 #! /bin/bash
 
 set -ex
-. ci/ci_includes.generated.sh
+. build/ci/ci_includes.generated.sh
 
 PackageVersion="$(git describe --tags --always)"
 
@@ -16,7 +16,7 @@ cp '/c/Program Files/OpenSSL/license.txt' ../release/data/obs-plugins/${PLUGIN_N
 
 7z a "${PLUGIN_NAME}-${PackageVersion}-obs$1-Windows.zip" ../release/*
 cmd.exe <<EOF
-iscc ..\\installer\\installer-Windows.generated.iss /O. /F"${PLUGIN_NAME}-${PackageVersion}-obs$1-Windows-Installer"
+iscc ..\\build\\installer-Windows.generated.iss /O. /F"${PLUGIN_NAME}-${PackageVersion}-obs$1-Windows-Installer"
 EOF
 sleep 2 && echo
 
