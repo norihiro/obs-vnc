@@ -8,8 +8,7 @@ Build-Depends:
  cmake,
  obs-studio,
  libsimde-dev,
- qt6-base-dev, qt6-base-private-dev, libqt6svg6-dev, qt6-wayland,
- libxcb1-dev, libx11-xcb-dev, libwayland-dev, libglvnd-dev,
+ pkgconf,
  libvncserver-dev
 Conflicts: obs-vnc
 Standards-Version: 4.6.2
