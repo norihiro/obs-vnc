@@ -9,9 +9,14 @@ fi
 packages_url='http://s.sudre.free.fr/Software/files/Packages.dmg'
 packages_hash='9d9a73a64317ea6697a380014d2e5c8c8188b59d5fb8ce8872e56cec06cd78e8'
 
-for ((retry=5; retry>0; retry--)); do
+retry=5
+until sha256sum -c <<<"$packages_hash Packages.dmg" ; do
 	curl -o Packages.dmg $packages_url
-	sha256sum -c <<<"$packages_hash Packages.dmg" && break
+	retry=$((retry-1))
+	if ((retry <= 0)); then
+		echo "Failed to download Packages.dmg" >&2
+		exit 1
+	fi
 done
 
 hdiutil attach -noverify Packages.dmg
