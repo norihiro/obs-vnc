@@ -111,7 +111,7 @@ jobs:
       - name: Install libvncserver
         run: |
           export arch=${{ matrix.arch }}
-          ci/macos/install-libvncserver-native.sh
+          brew bundle --file ci/macos/libvncserver.Brewfile
 
       - name: Build plugin
         run: |
