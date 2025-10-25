@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Source: <https://github.com/norihiro/obs-shutdown-plugin>
-Upstream-Name: obs-shutdown-plugin-for-obs
+Source: <https://github.com/norihiro/obs-vnc>
+Upstream-Name: obs-vnc
 Upstream-Contact: Norihiro Kamae <norihiro@nagater.net>
 
 Files:
