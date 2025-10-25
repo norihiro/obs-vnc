@@ -236,6 +236,9 @@ jobs:
             (cd $arch && tar xf ../tmp-$arch.tar)
           done
           mv arm64/build .
+          sed -i -e 's/macos-arm64/macos-universal/g' \
+            build/ci/ci_includes.generated.sh \
+            build/installer-macOS.generated.pkgproj
 
           . build/ci/ci_includes.generated.sh
 
@@ -243,7 +246,7 @@ jobs:
 
           for arch in x86_64 arm64; do
             mv $arch/release/${PLUGIN_NAME}.plugin/Contents/lib-$arch release/${PLUGIN_NAME}.plugin/Contents/lib-$arch
-            mv -f $arch/${PLUGIN_NAME}.plugin/Contents/Resources/* release/${PLUGIN_NAME}.plugin/Contents/Resources/ || true
+            mv -f $arch/release/${PLUGIN_NAME}.plugin/Contents/Resources/* release/${PLUGIN_NAME}.plugin/Contents/Resources/ || true
           done
 
           lipo -create {x86_64,arm64}/release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME} \
