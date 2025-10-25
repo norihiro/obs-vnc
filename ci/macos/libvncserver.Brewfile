@@ -1,0 +1,2 @@
+brew "pkgconf"
+brew "libvncserver"
