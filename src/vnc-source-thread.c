@@ -32,7 +32,7 @@
 #include <signal.h>
 #endif // ! _WIN32
 #include "plugin-macros.generated.h"
-#include "obs-vnc-source.h"
+#include "vnc-source.h"
 
 #define WHEEL_STEP 120 // 120 units = 15 degrees x 8
 

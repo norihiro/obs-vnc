@@ -42,8 +42,8 @@ configure_file(
 )
 
 set(PLUGIN_SOURCES
-	src/obs-vnc-source-main.c
-	src/obs-vnc-source-thread.c
+	src/vnc-source-main.c
+	src/vnc-source-thread.c
 )
 
 add_library(${PROJECT_NAME} MODULE ${PLUGIN_SOURCES})

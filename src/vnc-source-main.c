@@ -3,7 +3,7 @@
 #include <util/platform.h>
 #include <util/threading.h>
 #include "plugin-macros.generated.h"
-#include "obs-vnc-source.h"
+#include "vnc-source.h"
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
