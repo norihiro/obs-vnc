@@ -22,4 +22,5 @@ override_dh_auto_configure:
 	dh_auto_configure -- \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DLINUX_PORTABLE=OFF \
+	-DCMAKE_SKIP_RPATH:BOOL=ON \
 	-DQT_VERSION=6

@@ -10,7 +10,6 @@ Build-Depends:
  libsimde-dev,
  pkgconf,
  libvncserver-dev
-Conflicts: obs-vnc
 Standards-Version: 4.6.2
 Homepage: https://github.com/norihiro/obs-vnc
 
@@ -20,5 +19,7 @@ Multi-Arch: foreign
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
+Conflicts: obs-vnc
 Description: VNC plugin for OBS Studio
-
+ This plugin is a VNC viewer that works as a source in OBS Studio.
+ .
