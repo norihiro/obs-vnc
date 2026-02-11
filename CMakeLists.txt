@@ -9,9 +9,8 @@ set(MACOS_INSTALLER_UUID "F7A275F7-2A5F-4578-8017-D841EB2C3DB0")
 set(PLUGIN_URL "https://obsproject.com/forum/resources/vnc-source.1000/")
 set(LINUX_MAINTAINER_EMAIL "norihiro@nagater.net")
 
-# TAKE NOTE: No need to edit things past this point
+option(ENABLE_COVERAGE "Enable coverage option for GCC" OFF)
 
-# In case you need C++
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -89,16 +88,25 @@ endif()
 if(OS_LINUX)
 	target_compile_options(${PROJECT_NAME} PRIVATE -g -Wall -Wextra)
 	target_link_options(${PROJECT_NAME} PRIVATE -Wl,--no-undefined)
+
+	if(ENABLE_COVERAGE)
+		target_compile_options(${PROJECT_NAME} PRIVATE -coverage -fprofile-update=atomic)
+		target_link_options(${PROJECT_NAME} PRIVATE -coverage)
+	endif()
 endif()
 
 if(OS_MACOS)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fvisibility=default")
 
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-
 	set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
 	set(MACOSX_PLUGIN_BUNDLE_VERSION "${PROJECT_VERSION}")
 	set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
+
+	if(ENABLE_COVERAGE)
+		target_compile_options(${PROJECT_NAME} PRIVATE -coverage)
+		target_link_options(${PROJECT_NAME} PRIVATE --coverage)
+	endif()
 endif()
 
 setup_plugin_target(${PROJECT_NAME})
