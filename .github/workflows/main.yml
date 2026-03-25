@@ -178,6 +178,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Download toolkit for development environment
+        id: obsdeps
+        uses: norihiro/obs-studio-devel-action@v2
+        with:
+          obs: none
+          qt: false
+
       - name: Setup Environment
         id: setup
         run: |
@@ -275,7 +282,6 @@ jobs:
           zipfile=$PWD/package/${PLUGIN_NAME}${PKG_SUFFIX}.zip
           mkdir package
           (cd release/ && zip -r $zipfile ${PLUGIN_NAME}.plugin)
-          ci/macos/install-packagesbuild.sh
           packagesbuild \
             --build-folder $PWD/package/ \
             build/installer-macOS.generated.pkgproj
