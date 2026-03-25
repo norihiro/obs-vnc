@@ -141,7 +141,7 @@ jobs:
             --exclude-regex='(/usr/lib/|/System/Library/)' \
             --exclude-regex='.*(obs-frontend-api|libobs|/Qt)' \
             --libdir release/${PLUGIN_NAME}.plugin/Contents/lib-${{ matrix.arch }} \
-            --license-dir Resources/ \
+            --license-dir release/${PLUGIN_NAME}.plugin/Contents/Resources/ \
             --verbose \
             release/${PLUGIN_NAME}.plugin/Contents/MacOS/${PLUGIN_NAME}
           ci/macos/change-rpath.py \
