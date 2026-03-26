@@ -34,7 +34,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -60,7 +60,7 @@ jobs:
           make package
           echo "FILE_NAME=$(find $PWD -name '*.deb' | head -n 1)" >> $GITHUB_ENV
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.artifactName }}-linux-obs${{ matrix.obs }}-${{ matrix.ubuntu }}
           path: '${{ env.FILE_NAME }}'
@@ -94,7 +94,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -157,7 +157,7 @@ jobs:
           tar c release build > tmp-${{ matrix.arch }}.tar
 
       - name: Upload release directory
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-${{ matrix.arch }}
           path: tmp-*.tar
@@ -174,7 +174,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -207,7 +207,7 @@ jobs:
 
       - name: Install Apple Developer Certificate
         if: ${{ github.event_name != 'pull_request' && steps.setup.outputs.haveCodesignIdent == 'true' }}
-        uses: apple-actions/import-codesign-certs@63fff01cd422d4b7b855d40ca1e9d34d2de9427d # v3.0.0
+        uses: apple-actions/import-codesign-certs@fe74d46e82474f87e1ba79832ad28a4013d0e33a # v6.1.0
         with:
           keychain-password: ${{ github.run_id }}
           p12-file-base64: ${{ secrets.MACOS_SIGNING_CERT }}
@@ -223,14 +223,11 @@ jobs:
             --team-id "$TEAM_ID" \
             --password "${{ secrets.MACOS_NOTARIZATION_PASSWORD }}"
 
-      - run: brew install coreutils
-        # required for sha256sum
-
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-x86_64
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: tmp-${{ env.artifactName }}-macos-obs${{ matrix.obs }}-arm64
 
@@ -304,7 +301,7 @@ jobs:
           verbose: true
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.artifactName }}-macos-obs${{ matrix.obs }}-universal
           path: package/*
@@ -326,7 +323,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Download obs-studio
@@ -338,7 +335,7 @@ jobs:
 
       - name: Restore libvncserver cache
         id: libvncserver-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ env.LIBVNCPath }}
           key: libvncserver-${{ hashFiles('ci/windows/install-libvncserver.sh') }}
@@ -377,7 +374,7 @@ jobs:
         run: ci/windows/package-windows.sh ${{ matrix.obs }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.artifactName }}-windows-obs${{ matrix.obs }}-${{ matrix.arch }}
           path: package/*
